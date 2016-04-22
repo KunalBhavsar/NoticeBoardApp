@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">Notice Board App</string>
+    <string name="app_name_caps">NOTICE BOARD APP</string>
+    <string name="title_login">Sign In</string>
+    <string name="title_register">Register</string>
+    <string name="title_homescreen">Home Screen</string>
+    <string name="title_notice_board">Notice Board</string>
+    <string name="action_settings">Settings</string>
+    <string name="header_created_by">Created by : </string>
+    <string name="header_notice_count">Notices : </string>
+    <string name="header_owners">Owners : </string>
+
+    <string name="toast_register_first">Seem\'s you are not registered, try registering first</string>
+    <string name="toast_wrong_login_input">Seem\'s you have entered wrong password</string>
+    <string name="toast_internet_connection_error">Seem\'s you are not connected to Internet!!</string>
+    <string name="toast_username_already_in_use">This username is already in use, try another username</string>
+    <string name="toast_email_already_in_use">This email is already in use, try another email</string>
+    <string name="toast_mobile_already_in_use">This mobile number already in use, try another mobile number</string>
+    <string name="toast_register_successfully">Registered successfully!!</string>
+
+    <string name="loading_text">Loading...</string>
+
+    <string name="error_enter_username">Enter username</string>
+    <string name="error_enter_fullname">Enter fullname</string>
+    <string name="error_enter_password">Enter password</string>
+    <string name="error_enter_confirm_password">Enter confirm password</string>
+    <string name="error_enter_email">Enter email address</string>
+    <string name="error_enter_proper_email">Enter proper email address</string>
+    <string name="error_enter_mobile_number">Enter mobile number</string>
+    <string name="error_enter_proper_mobile_number">Enter proper mobile number</string>
+    <string name="error_password_mismatch">Confirm password is not matching with original password</string>
+</resources>

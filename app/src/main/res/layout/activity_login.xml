@@ -1,0 +1,115 @@
+<android.support.design.widget.CoordinatorLayout
+    android:id="@+id/coordinatorlayout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff">
+
+    <ScrollView android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="30dp"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="20dp">
+
+            <ImageView
+                android:id="@+id/img_logo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/txt_logo"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/logo"/>
+
+            <TextView android:id="@+id/txt_logo"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_centerHorizontal="true"
+                      android:layout_marginTop="5dp"
+                      android:text="@string/app_name_caps"
+                      android:textColor="@color/primary"
+                      android:textSize="24sp"
+                      android:textStyle="bold"/>
+
+            <RelativeLayout
+                android:id="@+id/rlt_phone"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_below="@+id/img_logo"
+                android:layout_marginTop="20dp">
+
+                <EditText
+                    android:id="@+id/edt_username"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="25dp"
+                    android:layout_marginRight="25dp"
+                    android:background="@android:color/transparent"
+                    android:drawableLeft="@drawable/ic_account"
+                    android:drawablePadding="20dp"
+                    android:hint="Username"
+                    android:imeOptions="actionNext"
+                    android:maxLength="30"
+                    android:paddingLeft="10dp"
+                    android:inputType="text"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginLeft="25dp"
+                    android:layout_marginRight="25dp"
+                    android:background="@color/grey_acacac"/>
+
+            </RelativeLayout>
+
+
+            <EditText
+                android:id="@+id/edt_password"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_below="@+id/rlt_phone"
+                android:layout_marginLeft="25dp"
+                android:layout_marginRight="25dp"
+                android:layout_marginTop="20dp"
+                android:drawableLeft="@drawable/ic_lock"
+                android:drawablePadding="20dp"
+                android:maxLength="30"
+                android:hint="Password"
+                android:maxLines="1"
+                android:inputType="textPassword"
+                android:paddingLeft="10dp"
+                android:paddingRight="20dp"
+                />
+
+            <Button
+                android:id="@+id/btn_login"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_below="@+id/edt_password"
+                android:layout_marginLeft="25dp"
+                android:layout_marginRight="25dp"
+                android:layout_marginTop="30dp"
+                android:text="LOGIN"
+                android:background="@color/accent"
+                android:textColor="@color/white_ffffff"/>
+
+            <Button
+                android:id="@+id/btn_register"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_below="@+id/btn_login"
+                android:layout_centerHorizontal="true"
+                android:layout_marginLeft="25dp"
+                android:layout_marginRight="25dp"
+                android:layout_marginTop="15dp"
+                android:background="@color/grey_acacac"
+                android:text="REGISTER"
+                android:textColor="@color/white_ffffff"/>
+        </RelativeLayout>
+    </ScrollView>
+</android.support.design.widget.CoordinatorLayout>

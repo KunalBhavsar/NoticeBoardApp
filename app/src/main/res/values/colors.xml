@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#009688</color>
+    <color name="primary_dark">#00796B</color>
+    <color name="accent">#FF6E40</color>
+    <color name="white_ffffff">#FFFFFF</color>
+    <color name="grey_acacac">#acacac</color>
+    <color name="grey_555555">#555555</color>
+    <color name="bkg_card">#a1a1a1</color>
+</resources>
