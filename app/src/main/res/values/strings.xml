@@ -29,4 +29,12 @@
     <string name="error_enter_mobile_number">Enter mobile number</string>
     <string name="error_enter_proper_mobile_number">Enter proper mobile number</string>
     <string name="error_password_mismatch">Confirm password is not matching with original password</string>
+
+    <string name="btn_done">DONE</string>
+    <string name="btn_cancel">CANCEL</string>
+    <string name="btn_login">LOGIN</string>
+    <string name="btn_register">REGISTER</string>
+
+    <string name="add_notice_board_dialog_title">Add Notice-Board</string>
+    <string name="hint_title">Enter title</string>
 </resources>

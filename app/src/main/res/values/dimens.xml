@@ -7,10 +7,15 @@
     <dimen name="_5dp">5dp</dimen>
     <dimen name="_10dp">10dp</dimen>
     <dimen name="_16dp">16dp</dimen>
+    <dimen name="_20dp">20dp</dimen>
+    <dimen name="_25dp">25dp</dimen>
+    <dimen name="_45dp">45dp</dimen>
+    <dimen name="_50dp">50dp</dimen>
     <dimen name="font_12sp">12sp</dimen>
     <dimen name="font_14sp">14sp</dimen>
     <dimen name="font_16sp">16sp</dimen>
     <dimen name="font_18sp">18sp</dimen>
     <dimen name="font_20sp">20sp</dimen>
     <dimen name="font_22sp">22sp</dimen>
+    <dimen name="font_24sp">24sp</dimen>
 </resources>
