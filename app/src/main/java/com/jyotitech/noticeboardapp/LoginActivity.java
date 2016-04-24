@@ -45,6 +45,7 @@ public class LoginActivity extends Activity {
         mAppContext = getApplicationContext();
         mActivityContext = this;
 
+
         sPref = getSharedPreferences(KeyConstants.SPREF_NAME, Context.MODE_PRIVATE);
 
         if(sPref.getBoolean(KeyConstants.SPREF_KEY_FOR_USER_LOGGED_IN, false)) {
