@@ -36,5 +36,12 @@
     <string name="btn_register">REGISTER</string>
 
     <string name="add_notice_board_dialog_title">Add Notice-Board</string>
+    <string name="add_notice_dialog_title">Add Notice</string>
     <string name="hint_title">Enter title</string>
+    <string name="hint_description">Enter descrption</string>
+    <string name="text_select_all">Select all</string>
+    <string name="error_enter_title">Enter title</string>
+    <string name="error_enter_description">Enter description</string>
+    <string name="error_select_user">Select atleast one user</string>
+    <string name="text_admin">Admin</string>
 </resources>

@@ -45,11 +45,17 @@ public class LoginActivity extends Activity {
         mAppContext = getApplicationContext();
         mActivityContext = this;
 
+        sPref = getSharedPreferences(KeyConstants.SPREF_NAME, Context.MODE_PRIVATE);
+
+        if(sPref.getBoolean(KeyConstants.SPREF_KEY_FOR_USER_LOGGED_IN, false)) {
+            Intent intent = new Intent(mActivityContext, NoticeBoardListActivity.class);
+            mActivityContext.startActivity(intent);
+            finish();
+        }
+
         progressDialog = new ProgressDialog(mActivityContext);
         progressDialog.setMessage(getString(R.string.loading_text));
         progressDialog.setCancelable(false);
-
-        sPref = getSharedPreferences(KeyConstants.SPREF_NAME, Context.MODE_PRIVATE);
 
         edtUsername = (EditText) findViewById(R.id.edt_username);
         edtPassword = (EditText) findViewById(R.id.edt_password);
@@ -90,6 +96,7 @@ public class LoginActivity extends Activity {
                                     editor.putString(KeyConstants.SPREF_KEY_FOR_EMAIL, user.getEmail());
                                     editor.putString(KeyConstants.SPREF_KEY_FOR_MOBILE_NUMBER, user.getMobile());
                                     editor.putString(KeyConstants.SPREF_KEY_FOR_FULL_NAME, user.getFullname());
+                                    editor.putBoolean(KeyConstants.SPREF_KEY_FOR_USER_LOGGED_IN, true);
                                     editor.apply();
 
                                     Intent intent = new Intent(mActivityContext, NoticeBoardListActivity.class);

@@ -10,14 +10,14 @@
         android:layout_height="@dimen/_50dp"
         android:background="@color/primary"
         android:padding="@dimen/_10dp"
-        android:text="@string/add_notice_board_dialog_title"
         android:gravity="center_vertical"
+        android:text="@string/add_notice_dialog_title"
         android:textColor="@color/white_ffffff"
         android:textSize="@dimen/font_18sp"
         android:textStyle="bold" />
 
     <EditText
-        android:id="@+id/edt_notice_board_title"
+        android:id="@+id/edt_notice_title"
         android:layout_width="match_parent"
         android:layout_height="@dimen/_50dp"
         android:layout_below="@+id/txt_header"
@@ -32,56 +32,26 @@
         android:paddingRight="@dimen/_10dp"
         android:paddingStart="@dimen/_10dp" />
 
-    <RelativeLayout
-        android:id="@+id/rel_select_all"
+    <EditText
+        android:id="@+id/edt_notice_description"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/edt_notice_board_title">
-
-        <TextView
-            android:id="@+id/txt_name"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_50dp"
-            android:layout_toLeftOf="@+id/checkbox"
-            android:layout_toStartOf="@+id/checkbox"
-            android:gravity="center_vertical"
-            android:padding="@dimen/_10dp"
-            android:singleLine="true"
-            android:text="@string/text_select_all"
-            android:textSize="@dimen/font_18sp" />
-
-        <CheckBox
-            android:id="@+id/checkbox"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/_50dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:gravity="center"
-            android:padding="@dimen/_10dp" />
-    </RelativeLayout>
-
-    <View
-        android:id="@+id/view_below_rel_select_all"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/grey_acacac"
+        android:layout_height="@dimen/_150dp"
+        android:layout_below="@+id/edt_notice_title"
         android:layout_marginLeft="@dimen/_10dp"
         android:layout_marginRight="@dimen/_10dp"
-        android:layout_marginStart="@dimen/_10dp"
-        android:layout_marginEnd="@dimen/_10dp"
-        android:layout_below="@+id/rel_select_all"/>
-    <ListView
-        android:id="@+id/lst_names"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/_250dp"
-        android:layout_below="@+id/view_below_rel_select_all"
-        android:scrollbars="vertical"/>
+        android:layout_marginTop="@dimen/_10dp"
+        android:hint="@string/hint_description"
+        android:background="@drawable/edittext_bg"
+        android:inputType="textMultiLine"
+        android:maxLength="500"
+        android:maxLines="5" />
 
     <LinearLayout
         android:id="@+id/lin_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/lst_names"
+        android:layout_marginTop="@dimen/_10dp"
+        android:layout_below="@+id/edt_notice_description"
         android:orientation="horizontal">
 
         <Button
