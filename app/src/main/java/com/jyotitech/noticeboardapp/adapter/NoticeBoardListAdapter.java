@@ -57,8 +57,8 @@ public class NoticeBoardListAdapter extends RecyclerView.Adapter<NoticeBoardList
             owners.replace(owners.length() - 1, owners.length(), ".");
         }
         personViewHolder.owners.setText(owners.toString());
-        personViewHolder.noticeCount.setText(noticeBoard.getNotices() != null ?
-                " " + noticeBoard.getNotices().size() : " " + 0);
+     /*   personViewHolder.noticeCount.setText(noticeBoard.getNotices() != null ?
+                " " + noticeBoard.getNotices().size() : " " + 0);*/
     }
 
     @Override

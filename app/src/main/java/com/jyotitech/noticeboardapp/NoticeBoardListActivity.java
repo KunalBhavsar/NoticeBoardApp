@@ -49,6 +49,7 @@ public class NoticeBoardListActivity extends AppCompatActivity {
     private Dialog dialogAddNoticeBoard;
     private long largestNoticeBoardId;
     private Firebase firebaseUser;
+    private Firebase firebaseNotice;
     private Firebase firebaseNoticeBoard;
 
     @Override
@@ -66,6 +67,7 @@ public class NoticeBoardListActivity extends AppCompatActivity {
 
         firebaseUser = new Firebase(KeyConstants.FIREBASE_RESOURCE_USER);
         firebaseNoticeBoard = new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICEBOARD);
+        firebaseNotice = new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE);
 
         // Create custom dialog object
         dialogAddNoticeBoard = new Dialog(this);
@@ -115,7 +117,7 @@ public class NoticeBoardListActivity extends AppCompatActivity {
                 NoticeBoard noticeBoard =  new NoticeBoard();
                 noticeBoard.setTitle(title);
                 noticeBoard.setMembers(selectedUsers);
-                noticeBoard.setNotices(new ArrayList<Notice>());
+                //noticeBoard.setNotices(new ArrayList<Notice>());
                 noticeBoard.setLastModifiedAt(Calendar.getInstance().getTimeInMillis());
                 noticeBoard.setId(++largestNoticeBoardId);
                 firebaseNoticeBoard.push().setValue(noticeBoard);
@@ -159,14 +161,16 @@ public class NoticeBoardListActivity extends AppCompatActivity {
         });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                edtTitle.setText("");
-                userListAdapter.clearSelectedList();
-                dialogAddNoticeBoard.show();
-            }
-        });
+        if (fab != null) {
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    edtTitle.setText("");
+                    userListAdapter.clearSelectedList();
+                    dialogAddNoticeBoard.show();
+                }
+            });
+        }
 
         RecyclerView recList = (RecyclerView) findViewById(R.id.recycler_view);
         recList.setHasFixedSize(false);

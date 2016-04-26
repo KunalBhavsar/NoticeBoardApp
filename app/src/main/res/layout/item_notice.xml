@@ -52,6 +52,15 @@
             android:layout_toStartOf="@id/txt_created_by"
             android:text="@string/header_created_by"
             android:textSize="@dimen/font_14sp" />
+
+
+        <ImageView android:layout_width="100dp"
+                   android:layout_marginTop="@dimen/_10dp"
+                   android:visibility="gone"
+                   android:layout_below="@+id/txt_description"
+                   android:id="@+id/img_attachment"
+                   android:layout_alignLeft="@+id/txt_description"
+                   android:layout_height="100dp"/>
     </RelativeLayout>
 
 </android.support.v7.widget.CardView>

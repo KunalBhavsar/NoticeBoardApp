@@ -6,20 +6,29 @@ import java.util.List;
  * Created by kiran on 20-Apr-16.
  */
 public class Notice {
-    private long id;
+    private Long id;
     private String title;
     private String description;
-    private List<String> attachments;
+    private String attachments;
     private UserMember owner;
-    private long createdAt;
+    private Long createdAt;
+    private Long noticeBoardId;
     public Notice() {
     }
 
-    public Notice(String title, String description, List<String> attachments, UserMember owner) {
+    public Notice(String title, String description, UserMember owner, String attachments) {
         this.title = title;
         this.description = description;
         this.attachments = attachments;
         this.owner = owner;
+    }
+
+    public long getNoticeBoardId() {
+        return noticeBoardId;
+    }
+
+    public void setNoticeBoardId(long noticeBoardId) {
+        this.noticeBoardId = noticeBoardId;
     }
 
     public long getId() {
@@ -46,11 +55,11 @@ public class Notice {
         this.description = description;
     }
 
-    public List<String> getAttachments() {
+    public String getAttachments() {
         return attachments;
     }
 
-    public void setAttachments(List<String> attachments) {
+    public void setAttachments(String attachments) {
         this.attachments = attachments;
     }
 

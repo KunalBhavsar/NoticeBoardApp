@@ -3,45 +3,47 @@ package com.jyotitech.noticeboardapp;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.content.CursorLoader;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.TextView;
 
-import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
-import com.jyotitech.noticeboardapp.adapter.NoticeBoardListAdapter;
 import com.jyotitech.noticeboardapp.adapter.NoticeListAdapter;
-import com.jyotitech.noticeboardapp.adapter.UserListAdapter;
 import com.jyotitech.noticeboardapp.model.Notice;
-import com.jyotitech.noticeboardapp.model.NoticeBoard;
 import com.jyotitech.noticeboardapp.model.UserMember;
 import com.jyotitech.noticeboardapp.utils.KeyConstants;
 import com.jyotitech.noticeboardapp.utils.ToastMaker;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * Created by kiran on 20-Apr-16.
@@ -49,17 +51,22 @@ import java.util.Set;
 public class NoticeListActivity extends AppCompatActivity {
 
     private static final String TAG = NoticeListActivity.class.getSimpleName();
+    private static final int SELECT_FILE = 200;
+    private static final int REQUEST_CAMERA = 100;
+
     private List<Notice> notices;
     private NoticeListAdapter noticeListAdapter;
     private SharedPreferences sharedPreferences;
     private Dialog dialogAddNotice;
-    private Firebase firebaseNoticeBoard;
+    private Firebase firebaseNotice;
     private EditText edtTitle;
+    private TextView txtAttachment;
     private EditText edtDescription;
     private Activity mActivityContext;
     private Context mAppContext;
-    private NoticeBoard noticeBoard;
-    private String noticeBoardKey;
+    private Bitmap thumbnail;
+    private String imgString;
+    long lastNoticeId = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,17 +78,16 @@ public class NoticeListActivity extends AppCompatActivity {
         mActivityContext = this;
         mAppContext = getApplicationContext();
 
-        long selectedNoticeBoardId = getIntent().getLongExtra(KeyConstants.EXTRA_FROM_NOTICE_BOARD_LIST_TO_NOTICE_LIST_ACTIVITY, 0);
+        final long selectedNoticeBoardId = getIntent().getLongExtra(KeyConstants.EXTRA_FROM_NOTICE_BOARD_LIST_TO_NOTICE_LIST_ACTIVITY, 0);
         sharedPreferences = getSharedPreferences(KeyConstants.SPREF_NAME, Context.MODE_PRIVATE);
-        firebaseNoticeBoard = new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICEBOARD);
+        firebaseNotice = new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE);
 
-        firebaseNoticeBoard.orderByChild("id").equalTo(selectedNoticeBoardId).addListenerForSingleValueEvent(new ValueEventListener() {
+        firebaseNotice.orderByChild("id").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
-                    noticeBoardKey = snapshot.getKey();
-                    noticeBoard = snapshot.getValue(NoticeBoard.class);
-                    break;
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Notice notice = snapshot.getValue(Notice.class);
+                    lastNoticeId = notice.getId();
                 }
             }
 
@@ -100,52 +106,55 @@ public class NoticeListActivity extends AppCompatActivity {
         Button btnAdd = (Button) dialogAddNotice.findViewById(R.id.btn_add);
         Button btnCancel = (Button) dialogAddNotice.findViewById(R.id.btn_cancel);
         edtTitle = (EditText) dialogAddNotice.findViewById(R.id.edt_notice_title);
+        txtAttachment = (TextView) dialogAddNotice.findViewById(R.id.edt_attachment);
         edtDescription = (EditText) dialogAddNotice.findViewById(R.id.edt_notice_description);
+        txtAttachment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectImage();
+            }
+        });
 
         // if decline button is clicked, close the custom dialog
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String title = edtTitle.getText().toString().trim();
-                if(title.isEmpty()) {
+                if (title.isEmpty()) {
                     ToastMaker.createShortToast(R.string.error_enter_title, mActivityContext);
                     return;
                 }
                 String description = edtDescription.getText().toString().trim();
-                if(description.isEmpty()) {
+                if (description.isEmpty()) {
                     ToastMaker.createShortToast(R.string.error_enter_description, mActivityContext);
                     return;
                 }
 
-                long largestNoticeId = 0;
-                if(noticeBoard.getNotices() == null) {
-                    noticeBoard.setNotices(new ArrayList<Notice>());
-                }
-                else {
-                    for (Notice notice : noticeBoard.getNotices()) {
-                        if (notice.getId() > largestNoticeId) {
-                            largestNoticeId = notice.getId();
-                        }
-                    }
-                }
+                //long largestNoticeId = 0;
+
                 Notice notice = new Notice();
                 notice.setCreatedAt(Calendar.getInstance().getTimeInMillis());
                 notice.setDescription(description);
                 notice.setTitle(title);
+                if(imgString != null)
+                notice.setAttachments(imgString);
+                notice.setNoticeBoardId(selectedNoticeBoardId);
                 UserMember userMember = new UserMember();
                 userMember.setId(sharedPreferences.getLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, 0));
                 userMember.setFullname(sharedPreferences.getString(KeyConstants.SPREF_KEY_FOR_FULL_NAME, ""));
                 userMember.setPermissions(KeyConstants.PERMISSION_WRITE);
                 notice.setOwner(userMember);
-                notice.setId(++largestNoticeId);
+                notice.setId(++lastNoticeId);
 
                 Map<String, Object> updateHashmap = new HashMap<>();
                 updateHashmap.put("lastModifiedAt", notice.getCreatedAt());
-                //Push notice board to firebase
-                firebaseNoticeBoard.child(noticeBoardKey).updateChildren(updateHashmap);
-                firebaseNoticeBoard.child(noticeBoardKey).child("notices").push().setValue(notice);
+                //Push notice to firebase
+                firebaseNotice.push().setValue(notice);
+                //firebaseNoticeBoard.child(noticeBoardKey).updateChildren(updateHashmap);
+                //firebaseNoticeBoard.child(noticeBoardKey).child("notices").push().setValue(notice);
                 // Close dialog
-                dialogAddNotice.hide();
+                dialogAddNotice.dismiss();
+                txtAttachment.setText("Add attachment");
             }
         });
 
@@ -158,14 +167,16 @@ public class NoticeListActivity extends AppCompatActivity {
         });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                edtTitle.setText("");
-                edtDescription.setText("");
-                dialogAddNotice.show();
-            }
-        });
+        if (fab != null) {
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    edtTitle.setText("");
+                    edtDescription.setText("");
+                    dialogAddNotice.show();
+                }
+            });
+        }
 
         RecyclerView recList = (RecyclerView) findViewById(R.id.recycler_view);
         recList.setHasFixedSize(false);
@@ -177,45 +188,33 @@ public class NoticeListActivity extends AppCompatActivity {
         noticeListAdapter = new NoticeListAdapter(this, notices, appOwnerId);
         recList.setAdapter(noticeListAdapter);
 
-        Firebase firebase = new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICEBOARD);
-        firebase.orderByChild("id").equalTo(selectedNoticeBoardId)
-                .addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot snapshot, String previousChild) {
-                notices.clear();
-                Log.i(TAG, snapshot.toString());
+        Firebase firebase = new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE);
+        firebase.orderByChild("noticeBoardId").equalTo(selectedNoticeBoardId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
 
-                NoticeBoard noticeBoard = snapshot.getValue(NoticeBoard.class);
-                //NoticeListActivity.this.getActionBar().setTitle(noticeBoard.getTitle());
-                notices.addAll(noticeBoard.getNotices() != null ? noticeBoard.getNotices() : new ArrayList<Notice>());
-                noticeListAdapter.notifyDataSetChanged();
-            }
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        notices.clear();
+                        Log.i(TAG, "snapshot " + dataSnapshot.toString());
 
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                        for (DataSnapshot snapshot1 : dataSnapshot.getChildren()) {
+                            Notice notice = snapshot1.getValue(Notice.class);
+                            notices.add(notice);
+                        }
 
-            }
+                        noticeListAdapter.notifyDataSetChanged();
+                    }
 
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
 
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
+                    }
+                });
     }
 
     @Override
     protected void onDestroy() {
-        if(dialogAddNotice != null) {
+        if (dialogAddNotice != null) {
             dialogAddNotice.dismiss();
         }
         super.onDestroy();
@@ -242,5 +241,76 @@ public class NoticeListActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    private void selectImage() {
+        final CharSequence[] items = {"Take Photo", "Choose from Library", "Cancel"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(NoticeListActivity.this);
+        builder.setTitle("Add Photo!");
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                if (items[item].equals("Take Photo")) {
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(intent, REQUEST_CAMERA);
+                } else if (items[item].equals("Choose from Library")) {
+                    Intent intent = new Intent(
+                            Intent.ACTION_PICK,
+                            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    intent.setType("image/*");
+                    startActivityForResult(
+                            Intent.createChooser(intent, "Select File"), SELECT_FILE);
+                } else if (items[item].equals("Cancel")) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        builder.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CAMERA) {
+            thumbnail = (Bitmap) data.getExtras().get("data");
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+            txtAttachment.setText("Attachment added");
+
+        } else if (requestCode == SELECT_FILE) {
+            Uri selectedImageUri = data.getData();
+            String[] projection = {MediaStore.MediaColumns.DATA};
+            CursorLoader cursorLoader = new CursorLoader(this, selectedImageUri, projection, null, null,
+                    null);
+            Cursor cursor = cursorLoader.loadInBackground();
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+            cursor.moveToFirst();
+
+            String selectedImagePath = cursor.getString(column_index);
+
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(selectedImagePath, options);
+            final int REQUIRED_SIZE = 200;
+            int scale = 1;
+            while (options.outWidth / scale / 2 >= REQUIRED_SIZE
+                    && options.outHeight / scale / 2 >= REQUIRED_SIZE)
+                scale *= 2;
+            options.inSampleSize = scale;
+            options.inJustDecodeBounds = false;
+            thumbnail = BitmapFactory.decodeFile(selectedImagePath, options);
+            txtAttachment.setText("Attachment added");
+        }
+
+        if(thumbnail != null) {
+            ByteArrayOutputStream bYtE = new ByteArrayOutputStream();
+            Log.i("bitmap", "bitmap thumbnail " + thumbnail.getWidth());
+            thumbnail.compress(Bitmap.CompressFormat.PNG, 100, bYtE);
+            thumbnail.recycle();
+            byte[] byteArray = bYtE.toByteArray();
+            imgString = Base64.encodeToString(byteArray, Base64.DEFAULT);
+        }
+    }
+
 }
 

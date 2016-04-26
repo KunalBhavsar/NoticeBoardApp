@@ -9,16 +9,14 @@ public class NoticeBoard {
     private long id;
     private String title;
     private List<UserMember> members;
-    private List<Notice> notices;
     private long lastModifiedAt;
 
     public NoticeBoard() {
     }
 
-    public NoticeBoard(String title, List<UserMember> members, List<Notice> notices) {
+    public NoticeBoard(String title, List<UserMember> members) {
         this.title = title;
         this.members = members;
-        this.notices = notices;
     }
 
     public long getId() {
@@ -43,14 +41,6 @@ public class NoticeBoard {
 
     public void setMembers(List<UserMember> members) {
         this.members = members;
-    }
-
-    public List<Notice> getNotices() {
-        return notices;
-    }
-
-    public void setNotices(List<Notice> notices) {
-        this.notices = notices;
     }
 
     public long getLastModifiedAt() {

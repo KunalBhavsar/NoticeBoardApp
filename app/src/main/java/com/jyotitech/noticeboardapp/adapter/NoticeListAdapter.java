@@ -1,10 +1,15 @@
 package com.jyotitech.noticeboardapp.adapter;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.jyotitech.noticeboardapp.NoticeListActivity;
@@ -42,6 +47,15 @@ public class NoticeListAdapter extends RecyclerView.Adapter<NoticeListAdapter.No
         noticeViewHolder.title.setText(notice.getTitle());
         noticeViewHolder.description.setText(notice.getDescription());
         noticeViewHolder.createdBy.setText(" " + notice.getOwner().getFullname());
+
+        if(notice.getAttachments() != null) {
+            byte[] decodedString = Base64.decode(notice.getAttachments(), Base64.DEFAULT);
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            noticeViewHolder.imgAttachment.setVisibility(View.VISIBLE);
+            Log.i("bitmap", "bitmap " + decodedString);
+            noticeViewHolder.imgAttachment.setImageBitmap(decodedByte);
+        }
+
     }
 
     @Override
@@ -56,6 +70,7 @@ public class NoticeListAdapter extends RecyclerView.Adapter<NoticeListAdapter.No
         TextView title;
         TextView description;
         TextView createdBy;
+        ImageView imgAttachment;
 
         NoticeViewHolder(View itemView) {
             super(itemView);
@@ -63,6 +78,7 @@ public class NoticeListAdapter extends RecyclerView.Adapter<NoticeListAdapter.No
             title = (TextView)itemView.findViewById(R.id.txt_title);
             description = (TextView)itemView.findViewById(R.id.txt_description);
             createdBy = (TextView)itemView.findViewById(R.id.txt_created_by);
+            imgAttachment = (ImageView)itemView.findViewById(R.id.img_attachment);
         }
     }
 }

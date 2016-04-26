@@ -85,7 +85,7 @@ public class LoginActivity extends Activity {
                             boolean usernameNotPresent = true;
                             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                                 User user = dataSnapshot.getValue(User.class);
-                                usernameNotPresent = false;
+                                 usernameNotPresent = false;
                                 if (!user.getPassword().equals(edtPassword.getText().toString())) {
                                     ToastMaker.createShortToast(R.string.toast_wrong_login_input, mActivityContext);
                                 }
