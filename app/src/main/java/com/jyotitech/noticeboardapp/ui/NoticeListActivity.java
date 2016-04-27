@@ -31,6 +31,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -40,6 +41,7 @@ import com.jyotitech.noticeboardapp.adapter.NoticeListAdapter;
 import com.jyotitech.noticeboardapp.model.Notice;
 import com.jyotitech.noticeboardapp.model.UserMember;
 import com.jyotitech.noticeboardapp.utils.KeyConstants;
+import com.jyotitech.noticeboardapp.utils.NotificationHandler;
 import com.jyotitech.noticeboardapp.utils.ToastMaker;
 
 import java.io.ByteArrayOutputStream;
@@ -167,9 +169,6 @@ public class NoticeListActivity extends AppCompatActivity {
                 firebaseNotice.push().setValue(notice);
                 notices.add(notice);
                 noticeListAdapter.notifyDataSetChanged();
-                //firebaseNoticeBoard.child(noticeBoardKey).updateChildren(updateHashmap);
-                //firebaseNoticeBoard.child(noticeBoardKey).child("notices").push().setValue(notice);
-                // Close dialog
                 dialogAddNotice.dismiss();
 
             }
@@ -204,7 +203,7 @@ public class NoticeListActivity extends AppCompatActivity {
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recList.setLayoutManager(llm);
         notices = new ArrayList<>();
-        long appOwnerId = sharedPreferences.getLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, 0);
+        final long appOwnerId = sharedPreferences.getLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, 0);
         noticeListAdapter = new NoticeListAdapter(this, notices, appOwnerId);
         recList.setAdapter(noticeListAdapter);
 
@@ -229,6 +228,39 @@ public class NoticeListActivity extends AppCompatActivity {
 
                     }
                 });
+
+        firebase.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Notice notice = dataSnapshot.getValue(Notice.class);
+                Log.e(TAG, "notify " + appOwnerId + " " + notice.getOwner().getId());
+                if(appOwnerId != notice.getOwner().getId()) {
+                    NotificationHandler notificationHandler = new NotificationHandler(NoticeListActivity.this);
+                    notificationHandler.showNotification("Notice added by "+ notice.getOwner().getFullname(), notice.getDescription());
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
     }
 
     @Override
