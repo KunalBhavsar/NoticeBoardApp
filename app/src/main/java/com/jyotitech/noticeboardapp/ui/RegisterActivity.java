@@ -1,24 +1,20 @@
-package com.jyotitech.noticeboardapp;
+package com.jyotitech.noticeboardapp.ui;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
-import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.jyotitech.noticeboardapp.R;
 import com.jyotitech.noticeboardapp.model.User;
 import com.jyotitech.noticeboardapp.utils.ActivityUtils;
 import com.jyotitech.noticeboardapp.utils.KeyConstants;

@@ -12,11 +12,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.jyotitech.noticeboardapp.NoticeListActivity;
+import com.jyotitech.noticeboardapp.ui.NoticeListActivity;
 import com.jyotitech.noticeboardapp.R;
 import com.jyotitech.noticeboardapp.model.Notice;
-import com.jyotitech.noticeboardapp.model.UserMember;
-import com.jyotitech.noticeboardapp.utils.KeyConstants;
 
 import java.util.List;
 
@@ -49,7 +47,14 @@ public class NoticeListAdapter extends RecyclerView.Adapter<NoticeListAdapter.No
         noticeViewHolder.createdBy.setText(" " + notice.getOwner().getFullname());
 
         if(notice.getAttachments() != null) {
-            byte[] decodedString = Base64.decode(notice.getAttachments(), Base64.DEFAULT);
+            byte[] decodedString;
+            try{
+                decodedString = Base64.decode(notice.getAttachments(), Base64.DEFAULT);
+            }
+            catch (Exception e) {
+                decodedString = Base64.decode(notice.getAttachments(), Base64.URL_SAFE);
+            }
+
             Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
             noticeViewHolder.imgAttachment.setVisibility(View.VISIBLE);
             Log.i("bitmap", "bitmap " + decodedString);

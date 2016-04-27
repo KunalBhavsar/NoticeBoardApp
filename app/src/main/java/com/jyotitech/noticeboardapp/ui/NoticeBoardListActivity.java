@@ -1,7 +1,8 @@
-package com.jyotitech.noticeboardapp;
+package com.jyotitech.noticeboardapp.ui;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -13,18 +14,20 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.jyotitech.noticeboardapp.R;
 import com.jyotitech.noticeboardapp.adapter.NoticeBoardListAdapter;
 import com.jyotitech.noticeboardapp.adapter.UserListAdapter;
-import com.jyotitech.noticeboardapp.model.Notice;
 import com.jyotitech.noticeboardapp.model.NoticeBoard;
 import com.jyotitech.noticeboardapp.model.UserMember;
 import com.jyotitech.noticeboardapp.utils.KeyConstants;
@@ -32,7 +35,6 @@ import com.jyotitech.noticeboardapp.utils.ToastMaker;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 
 public class NoticeBoardListActivity extends AppCompatActivity {
@@ -51,6 +53,10 @@ public class NoticeBoardListActivity extends AppCompatActivity {
     private Firebase firebaseUser;
     private Firebase firebaseNotice;
     private Firebase firebaseNoticeBoard;
+    private FloatingActionButton fab;
+    private RecyclerView recList;
+    private RelativeLayout rltProgress;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +69,10 @@ public class NoticeBoardListActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        recList = (RecyclerView) findViewById(R.id.recycler_view);
+        rltProgress = (RelativeLayout) findViewById(R.id.rlt_progress);
+        setProgress(true);
         sharedPreferences = getSharedPreferences(KeyConstants.SPREF_NAME, Context.MODE_PRIVATE);
 
         firebaseUser = new Firebase(KeyConstants.FIREBASE_RESOURCE_USER);
@@ -72,7 +82,9 @@ public class NoticeBoardListActivity extends AppCompatActivity {
         // Create custom dialog object
         dialogAddNoticeBoard = new Dialog(this);
         // Include dialog.xml file
+        dialogAddNoticeBoard.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogAddNoticeBoard.setContentView(R.layout.dialog_add_notice_board);
+
 
         // set values for custom dialog components - text, image and button
         ListView lstUsers = (ListView) dialogAddNoticeBoard.findViewById(R.id.lst_names);
@@ -151,6 +163,7 @@ public class NoticeBoardListActivity extends AppCompatActivity {
                     }
                 }
                 userListAdapter.addDataSource(userMemberList);
+                setProgress(false);
                 setAllSelectedCheckbox();
             }
 
@@ -160,7 +173,6 @@ public class NoticeBoardListActivity extends AppCompatActivity {
             }
         });
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if (fab != null) {
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -172,13 +184,13 @@ public class NoticeBoardListActivity extends AppCompatActivity {
             });
         }
 
-        RecyclerView recList = (RecyclerView) findViewById(R.id.recycler_view);
         recList.setHasFixedSize(false);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recList.setLayoutManager(llm);
         noticeBoards = new ArrayList<>();
         long appOwnerId = sharedPreferences.getLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, 0);
+        Log.i(TAG, "appOwnerId " + appOwnerId);
         noticeBoardListAdapter = new NoticeBoardListAdapter(this, noticeBoards, appOwnerId);
         recList.setAdapter(noticeBoardListAdapter);
 
@@ -193,6 +205,7 @@ public class NoticeBoardListActivity extends AppCompatActivity {
                         largestNoticeBoardId = noticeBoard.getId();
                     }
                     for (UserMember userMember : noticeBoard.getMembers()) {
+                        Log.i(TAG, "userMember " + userMember.getId());
                         if (userMember.getId() == appOwnerId) {
                             noticeBoards.add(noticeBoard);
                         }
@@ -208,6 +221,19 @@ public class NoticeBoardListActivity extends AppCompatActivity {
         });
 
     }
+
+    private void setProgress(boolean flag) {
+        if (flag) {
+            rltProgress.setVisibility(View.VISIBLE);
+            fab.setVisibility(View.GONE);
+            recList.setVisibility(View.GONE);
+        } else {
+            rltProgress.setVisibility(View.GONE);
+            fab.setVisibility(View.VISIBLE);
+            recList.setVisibility(View.VISIBLE);
+        }
+    }
+
 
     @Override
     protected void onDestroy() {
@@ -236,7 +262,16 @@ public class NoticeBoardListActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_logout) {
+
+            SharedPreferences sPref = getSharedPreferences(KeyConstants.SPREF_NAME, MODE_PRIVATE);
+            SharedPreferences.Editor editor = sPref.edit();
+            editor.clear().commit();
+
+            Intent i = new Intent(NoticeBoardListActivity.this, LoginActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(i);
+            finish();
             return true;
         }
 

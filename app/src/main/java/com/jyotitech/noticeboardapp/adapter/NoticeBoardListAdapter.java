@@ -8,8 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.jyotitech.noticeboardapp.NoticeBoardListActivity;
-import com.jyotitech.noticeboardapp.NoticeListActivity;
+import com.jyotitech.noticeboardapp.ui.NoticeBoardListActivity;
+import com.jyotitech.noticeboardapp.ui.NoticeListActivity;
 import com.jyotitech.noticeboardapp.R;
 import com.jyotitech.noticeboardapp.model.NoticeBoard;
 import com.jyotitech.noticeboardapp.model.UserMember;

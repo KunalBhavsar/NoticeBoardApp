@@ -1,4 +1,4 @@
-package com.jyotitech.noticeboardapp;
+package com.jyotitech.noticeboardapp.ui;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -24,14 +24,18 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.jyotitech.noticeboardapp.R;
 import com.jyotitech.noticeboardapp.adapter.NoticeListAdapter;
 import com.jyotitech.noticeboardapp.model.Notice;
 import com.jyotitech.noticeboardapp.model.UserMember;
@@ -66,7 +70,11 @@ public class NoticeListActivity extends AppCompatActivity {
     private Context mAppContext;
     private Bitmap thumbnail;
     private String imgString;
-    long lastNoticeId = 0;
+    private RecyclerView recList;
+    private FloatingActionButton fab;
+    private ImageView imgDialog;
+    private RelativeLayout rltProgress;
+    private long lastNoticeId = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +85,11 @@ public class NoticeListActivity extends AppCompatActivity {
 
         mActivityContext = this;
         mAppContext = getApplicationContext();
+        rltProgress = (RelativeLayout) findViewById(R.id.rlt_progress);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        recList = (RecyclerView) findViewById(R.id.recycler_view);
+
+        setProgress(true);
 
         final long selectedNoticeBoardId = getIntent().getLongExtra(KeyConstants.EXTRA_FROM_NOTICE_BOARD_LIST_TO_NOTICE_LIST_ACTIVITY, 0);
         sharedPreferences = getSharedPreferences(KeyConstants.SPREF_NAME, Context.MODE_PRIVATE);
@@ -100,6 +113,7 @@ public class NoticeListActivity extends AppCompatActivity {
         // Create custom dialog object
         dialogAddNotice = new Dialog(this);
         // Include dialog.xml file
+        dialogAddNotice.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogAddNotice.setContentView(R.layout.dialog_add_notice);
 
         // set values for custom dialog components - text, image and button
@@ -108,6 +122,7 @@ public class NoticeListActivity extends AppCompatActivity {
         edtTitle = (EditText) dialogAddNotice.findViewById(R.id.edt_notice_title);
         txtAttachment = (TextView) dialogAddNotice.findViewById(R.id.edt_attachment);
         edtDescription = (EditText) dialogAddNotice.findViewById(R.id.edt_notice_description);
+        imgDialog = (ImageView) dialogAddNotice.findViewById(R.id.img_photo);
         txtAttachment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -136,8 +151,8 @@ public class NoticeListActivity extends AppCompatActivity {
                 notice.setCreatedAt(Calendar.getInstance().getTimeInMillis());
                 notice.setDescription(description);
                 notice.setTitle(title);
-                if(imgString != null)
-                notice.setAttachments(imgString);
+                if (imgString != null)
+                    notice.setAttachments(imgString);
                 notice.setNoticeBoardId(selectedNoticeBoardId);
                 UserMember userMember = new UserMember();
                 userMember.setId(sharedPreferences.getLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, 0));
@@ -150,11 +165,13 @@ public class NoticeListActivity extends AppCompatActivity {
                 updateHashmap.put("lastModifiedAt", notice.getCreatedAt());
                 //Push notice to firebase
                 firebaseNotice.push().setValue(notice);
+                notices.add(notice);
+                noticeListAdapter.notifyDataSetChanged();
                 //firebaseNoticeBoard.child(noticeBoardKey).updateChildren(updateHashmap);
                 //firebaseNoticeBoard.child(noticeBoardKey).child("notices").push().setValue(notice);
                 // Close dialog
                 dialogAddNotice.dismiss();
-                txtAttachment.setText("Add attachment");
+
             }
         });
 
@@ -166,19 +183,22 @@ public class NoticeListActivity extends AppCompatActivity {
             }
         });
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if (fab != null) {
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     edtTitle.setText("");
                     edtDescription.setText("");
+                    txtAttachment.setText("Add attachment");
+                    txtAttachment.setTextColor(getResources().getColor(R.color.grey_555555));
+                    //imgDialog.setImageBitmap(null);
+                    imgString = "";
+                    thumbnail = null;
                     dialogAddNotice.show();
                 }
             });
         }
 
-        RecyclerView recList = (RecyclerView) findViewById(R.id.recycler_view);
         recList.setHasFixedSize(false);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
@@ -190,19 +210,18 @@ public class NoticeListActivity extends AppCompatActivity {
 
         Firebase firebase = new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE);
         firebase.orderByChild("noticeBoardId").equalTo(selectedNoticeBoardId)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
+                .addValueEventListener(new ValueEventListener() {
 
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         notices.clear();
-                        Log.i(TAG, "snapshot " + dataSnapshot.toString());
-
                         for (DataSnapshot snapshot1 : dataSnapshot.getChildren()) {
                             Notice notice = snapshot1.getValue(Notice.class);
                             notices.add(notice);
                         }
 
                         noticeListAdapter.notifyDataSetChanged();
+                        setProgress(false);
                     }
 
                     @Override
@@ -235,11 +254,31 @@ public class NoticeListActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_logout) {
+            SharedPreferences sPref = getSharedPreferences(KeyConstants.SPREF_NAME, MODE_PRIVATE);
+            SharedPreferences.Editor editor = sPref.edit();
+            editor.clear().commit();
+
+            Intent i = new Intent(NoticeListActivity.this, LoginActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(i);
+            finish();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void setProgress(boolean flag) {
+        if (flag) {
+            rltProgress.setVisibility(View.VISIBLE);
+            fab.setVisibility(View.GONE);
+            recList.setVisibility(View.GONE);
+        } else {
+            rltProgress.setVisibility(View.GONE);
+            fab.setVisibility(View.VISIBLE);
+            recList.setVisibility(View.VISIBLE);
+        }
     }
 
     private void selectImage() {
@@ -271,45 +310,57 @@ public class NoticeListActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CAMERA) {
-            thumbnail = (Bitmap) data.getExtras().get("data");
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
-            txtAttachment.setText("Attachment added");
+        if (resultCode == RESULT_OK) {
 
-        } else if (requestCode == SELECT_FILE) {
-            Uri selectedImageUri = data.getData();
-            String[] projection = {MediaStore.MediaColumns.DATA};
-            CursorLoader cursorLoader = new CursorLoader(this, selectedImageUri, projection, null, null,
-                    null);
-            Cursor cursor = cursorLoader.loadInBackground();
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-            cursor.moveToFirst();
+            if (requestCode == REQUEST_CAMERA) {
+                thumbnail = (Bitmap) data.getExtras().get("data");
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
 
-            String selectedImagePath = cursor.getString(column_index);
+            } else if (requestCode == SELECT_FILE) {
+                Uri selectedImageUri = data.getData();
+                String[] projection = {MediaStore.MediaColumns.DATA};
+                CursorLoader cursorLoader = new CursorLoader(this, selectedImageUri, projection, null, null,
+                        null);
+                Cursor cursor = cursorLoader.loadInBackground();
+                int column_index = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+                cursor.moveToFirst();
 
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(selectedImagePath, options);
-            final int REQUIRED_SIZE = 200;
-            int scale = 1;
-            while (options.outWidth / scale / 2 >= REQUIRED_SIZE
-                    && options.outHeight / scale / 2 >= REQUIRED_SIZE)
-                scale *= 2;
-            options.inSampleSize = scale;
-            options.inJustDecodeBounds = false;
-            thumbnail = BitmapFactory.decodeFile(selectedImagePath, options);
-            txtAttachment.setText("Attachment added");
+                String selectedImagePath = cursor.getString(column_index);
+
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(selectedImagePath, options);
+                final int REQUIRED_SIZE = 200;
+                int scale = 1;
+                while (options.outWidth / scale / 2 >= REQUIRED_SIZE
+                        && options.outHeight / scale / 2 >= REQUIRED_SIZE)
+                    scale *= 2;
+                options.inSampleSize = scale;
+                options.inJustDecodeBounds = false;
+                thumbnail = BitmapFactory.decodeFile(selectedImagePath, options);
+            }
+
+            if (thumbnail != null) {
+
+                txtAttachment.setText("Attachment added");
+                txtAttachment.setTextColor(getResources().getColor(R.color.green));
+                //imgDialog.setImageBitmap(thumbnail);
+                ByteArrayOutputStream bYtE = new ByteArrayOutputStream();
+                Log.i("bitmap", "bitmap thumbnail " + thumbnail.getWidth());
+                thumbnail.compress(Bitmap.CompressFormat.PNG, 100, bYtE);
+                thumbnail.recycle();
+
+                byte[] byteArray = bYtE.toByteArray();
+                if(requestCode == REQUEST_CAMERA) {
+                    imgString = Base64.encodeToString(byteArray, Base64.DEFAULT);
+                }else {
+                    imgString = Base64.encodeToString(byteArray, Base64.URL_SAFE);
+                }
+
+            }
         }
 
-        if(thumbnail != null) {
-            ByteArrayOutputStream bYtE = new ByteArrayOutputStream();
-            Log.i("bitmap", "bitmap thumbnail " + thumbnail.getWidth());
-            thumbnail.compress(Bitmap.CompressFormat.PNG, 100, bYtE);
-            thumbnail.recycle();
-            byte[] byteArray = bYtE.toByteArray();
-            imgString = Base64.encodeToString(byteArray, Base64.DEFAULT);
-        }
     }
 
 }

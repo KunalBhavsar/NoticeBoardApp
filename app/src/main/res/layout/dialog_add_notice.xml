@@ -8,6 +8,7 @@
         android:id="@+id/txt_header"
         android:layout_width="match_parent"
         android:layout_height="@dimen/_50dp"
+        android:layout_alignParentTop="true"
         android:background="@color/primary"
         android:gravity="center_vertical"
         android:padding="@dimen/_10dp"
@@ -23,6 +24,7 @@
         android:layout_below="@+id/txt_header"
         android:layout_marginLeft="@dimen/_10dp"
         android:layout_marginRight="@dimen/_10dp"
+        android:layout_marginTop="@dimen/_10dp"
         android:hint="@string/hint_title"
         android:inputType="text"
         android:maxLength="100"
@@ -48,24 +50,30 @@
 
     <TextView android:id="@+id/edt_attachment" android:layout_width="match_parent"
               android:layout_height="50dp"
-              android:paddingLeft="5dp"
               android:layout_below="@id/edt_notice_description"
               android:layout_marginLeft="15dp"
               android:layout_marginRight="@dimen/_10dp"
               android:layout_marginTop="@dimen/_10dp"
-              android:text="Add attachment"
-              android:gravity="center_vertical"
               android:clickable="true"
               android:drawableLeft="@drawable/tool"
               android:drawablePadding="10dp"
+              android:gravity="center_vertical"
+              android:paddingLeft="5dp"
+              android:text="Add attachment"
               android:textColor="@color/grey_555555"
     />
+
+    <ImageView android:id="@+id/img_photo"
+               android:layout_width="100dp"
+               android:layout_height="100dp"
+               android:layout_marginLeft="60dp"
+               android:layout_below="@+id/edt_attachment"/>
 
     <LinearLayout
         android:id="@+id/lin_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/edt_attachment"
+        android:layout_alignParentBottom="true"
         android:layout_marginTop="@dimen/_10dp"
         android:orientation="horizontal">
 

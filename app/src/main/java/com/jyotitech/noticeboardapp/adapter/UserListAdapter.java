@@ -10,7 +10,7 @@ import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.jyotitech.noticeboardapp.NoticeBoardListActivity;
+import com.jyotitech.noticeboardapp.ui.NoticeBoardListActivity;
 import com.jyotitech.noticeboardapp.R;
 import com.jyotitech.noticeboardapp.model.UserMember;
 import com.jyotitech.noticeboardapp.utils.KeyConstants;

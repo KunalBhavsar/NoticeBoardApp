@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
     <TextView
         android:id="@+id/txt_header"
         android:layout_width="match_parent"
         android:layout_height="@dimen/_50dp"
+        android:layout_alignParentTop="true"
         android:background="@color/primary"
+        android:gravity="center_vertical"
         android:padding="@dimen/_10dp"
         android:text="@string/add_notice_board_dialog_title"
-        android:gravity="center_vertical"
         android:textColor="@color/white_ffffff"
         android:textSize="@dimen/font_18sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/edt_notice_board_title"
@@ -30,7 +31,7 @@
         android:paddingEnd="@dimen/_10dp"
         android:paddingLeft="@dimen/_10dp"
         android:paddingRight="@dimen/_10dp"
-        android:paddingStart="@dimen/_10dp" />
+        android:paddingStart="@dimen/_10dp"/>
 
     <RelativeLayout
         android:id="@+id/rel_select_all"
@@ -48,7 +49,7 @@
             android:padding="@dimen/_10dp"
             android:singleLine="true"
             android:text="@string/text_select_all"
-            android:textSize="@dimen/font_18sp" />
+            android:textSize="@dimen/font_18sp"/>
 
         <CheckBox
             android:id="@+id/checkbox"
@@ -57,19 +58,19 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:gravity="center"
-            android:padding="@dimen/_10dp" />
+            android:padding="@dimen/_10dp"/>
     </RelativeLayout>
 
     <View
         android:id="@+id/view_below_rel_select_all"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/grey_acacac"
+        android:layout_below="@+id/rel_select_all"
+        android:layout_marginEnd="@dimen/_10dp"
         android:layout_marginLeft="@dimen/_10dp"
         android:layout_marginRight="@dimen/_10dp"
         android:layout_marginStart="@dimen/_10dp"
-        android:layout_marginEnd="@dimen/_10dp"
-        android:layout_below="@+id/rel_select_all"/>
+        android:background="@color/grey_acacac"/>
     <ListView
         android:id="@+id/lst_names"
         android:layout_width="match_parent"
@@ -81,7 +82,7 @@
         android:id="@+id/lin_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/lst_names"
+        android:layout_alignParentBottom="true"
         android:orientation="horizontal">
 
         <Button
@@ -91,12 +92,12 @@
             android:layout_weight="1"
             android:background="@color/grey_acacac"
             android:text="@string/btn_cancel"
-            android:textColor="@color/white_ffffff" />
+            android:textColor="@color/white_ffffff"/>
 
         <View
             android:layout_width="@dimen/_2dp"
             android:layout_height="match_parent"
-            android:background="@color/white_ffffff" />
+            android:background="@color/white_ffffff"/>
 
         <Button
             android:id="@+id/btn_add"
@@ -105,7 +106,7 @@
             android:layout_weight="1"
             android:background="@color/grey_acacac"
             android:text="@string/btn_done"
-            android:textColor="@color/white_ffffff" />
+            android:textColor="@color/white_ffffff"/>
     </LinearLayout>
 
 </RelativeLayout>

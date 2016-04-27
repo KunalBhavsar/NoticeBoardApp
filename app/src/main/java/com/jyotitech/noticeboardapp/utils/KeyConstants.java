@@ -1,7 +1,5 @@
 package com.jyotitech.noticeboardapp.utils;
 
-import com.jyotitech.noticeboardapp.NoticeBoardApplication;
-
 /**
  * Created by kiran on 20-Apr-16.
  */

@@ -1,4 +1,4 @@
-package com.jyotitech.noticeboardapp;
+package com.jyotitech.noticeboardapp.ui;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -15,6 +15,7 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.jyotitech.noticeboardapp.R;
 import com.jyotitech.noticeboardapp.model.User;
 import com.jyotitech.noticeboardapp.utils.ActivityUtils;
 import com.jyotitech.noticeboardapp.utils.KeyConstants;

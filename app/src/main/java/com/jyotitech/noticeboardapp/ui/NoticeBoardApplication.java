@@ -1,4 +1,4 @@
-package com.jyotitech.noticeboardapp;
+package com.jyotitech.noticeboardapp.ui;
 
 import android.app.Application;
 
