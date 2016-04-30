@@ -1,10 +1,8 @@
 package com.jyotitech.noticeboardapp.ui;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,7 +14,6 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 import com.jyotitech.noticeboardapp.R;
-import com.jyotitech.noticeboardapp.interfaces.OutdatedResourceSubscriber;
 import com.jyotitech.noticeboardapp.model.User;
 import com.jyotitech.noticeboardapp.sugar_models.SOUser;
 import com.jyotitech.noticeboardapp.utils.ActivityUtils;
@@ -85,6 +82,7 @@ public class LoginActivity extends OutdatedResourceSubscriberActivity {
                                 User user = dataSnapshot.getValue(User.class);
                                 usernameNotPresent = false;
                                 if (!user.getPassword().equals(edtPassword.getText().toString())) {
+                                    progressDialog.dismiss();
                                     ToastMaker.createShortToast(R.string.toast_wrong_login_input, mActivityContext);
                                 }
                                 else {
@@ -110,6 +108,7 @@ public class LoginActivity extends OutdatedResourceSubscriberActivity {
                                         @Override
                                         public void onCancelled(FirebaseError firebaseError) {
                                             errorInSyncingData();
+                                            progressDialog.dismiss();
                                             Log.e(TAG, "Error in syncing users data : s" + firebaseError.getDetails());
                                         }
                                     });
