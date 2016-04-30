@@ -15,6 +15,7 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 import com.jyotitech.noticeboardapp.R;
+import com.jyotitech.noticeboardapp.interfaces.OutdatedResourceSubscriber;
 import com.jyotitech.noticeboardapp.model.User;
 import com.jyotitech.noticeboardapp.utils.ActivityUtils;
 import com.jyotitech.noticeboardapp.utils.KeyConstants;
@@ -24,7 +25,7 @@ import com.jyotitech.noticeboardapp.utils.ToastMaker;
 /**
  * Created by kiran on 22-Apr-16.
  */
-public class RegisterActivity extends AppCompatActivity {
+public class RegisterActivity extends OutdatedResourceSubscriberActivity {
 
     private static final String TAG = RegisterActivity.class.getSimpleName();
     EditText edtFullname;

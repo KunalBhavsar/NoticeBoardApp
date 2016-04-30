@@ -5,32 +5,47 @@ import android.graphics.BitmapFactory;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.jyotitech.noticeboardapp.ui.NoticeListActivity;
 import com.jyotitech.noticeboardapp.R;
 import com.jyotitech.noticeboardapp.model.Notice;
+import com.jyotitech.noticeboardapp.sugar_models.SONotice;
+import com.jyotitech.noticeboardapp.sugar_models.SOUser;
+import com.jyotitech.noticeboardapp.ui.NoticeListActivity;
+import com.jyotitech.noticeboardapp.utils.AppPreferences;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by kiran on 20-Apr-16.
+ * Adapter to show list of notices on Screen.
+ * Created by Pinky Walve on 20-Apr-16.
  */
 public class NoticeListAdapter extends RecyclerView.Adapter<NoticeListAdapter.NoticeViewHolder> {
 
-    List<Notice> notices;
-    NoticeListActivity mActivity;
-    long appOwnerId;
+    private List<SONotice> notices;
+    private NoticeListActivity mActivity;
+    private long appOwnerId;
 
-    public NoticeListAdapter(NoticeListActivity activity, List<Notice> notices, long appOwnerId) {
-        this.notices = notices;
-        this.appOwnerId = appOwnerId;
+    public NoticeListAdapter(NoticeListActivity activity) {
+        this.notices = new ArrayList<>();
+        this.appOwnerId = AppPreferences.getInstance().getAppOwnerId();
         this.mActivity = activity;
+    }
+
+    public void setDataSource(List<SONotice> soNotices) {
+        this.notices.clear();
+        this.notices.addAll(soNotices);
+        notifyDataSetChanged();
+    }
+
+    public void addDataToDatasource(SONotice soNotice) {
+        this.notices.add(soNotice);
+        notifyDataSetChanged();
     }
 
     @Override
@@ -40,13 +55,16 @@ public class NoticeListAdapter extends RecyclerView.Adapter<NoticeListAdapter.No
 
     @Override
     public void onBindViewHolder(NoticeViewHolder noticeViewHolder, int i) {
-        Notice notice = notices.get(i);
-        noticeViewHolder.cardView.setTag(notice.getId());
+        SONotice notice = notices.get(i);
+        noticeViewHolder.cardView.setTag(notice.getNoticeId());
         noticeViewHolder.title.setText(notice.getTitle());
         noticeViewHolder.description.setText(notice.getDescription());
-        noticeViewHolder.createdBy.setText(" " + notice.getOwner().getFullname());
+        SOUser owner = SOUser.findByUserId(notice.getOwner());
+        noticeViewHolder.createdBy.setText(owner != null ?
+                (owner.getUserId() == appOwnerId ? "Me" :owner.getFullname()) : "");
+        noticeViewHolder.imgAttachment.setVisibility(View.GONE);
 
-        if(notice.getAttachments() != null) {
+/*        if(notice.getAttachments() != null) {
             byte[] decodedString;
             try{
                 decodedString = Base64.decode(notice.getAttachments(), Base64.DEFAULT);
@@ -57,17 +75,14 @@ public class NoticeListAdapter extends RecyclerView.Adapter<NoticeListAdapter.No
 
             Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
             noticeViewHolder.imgAttachment.setVisibility(View.VISIBLE);
-            Log.i("bitmap", "bitmap " + decodedString);
             noticeViewHolder.imgAttachment.setImageBitmap(decodedByte);
-        }
-
+        }*/
     }
 
     @Override
     public NoticeViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_notice, viewGroup, false);
-        NoticeViewHolder pvh = new NoticeViewHolder(v);
-        return pvh;
+        return new NoticeViewHolder(v);
     }
 
     public static class NoticeViewHolder extends RecyclerView.ViewHolder {

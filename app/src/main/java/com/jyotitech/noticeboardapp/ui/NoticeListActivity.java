@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
@@ -38,33 +39,37 @@ import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 import com.jyotitech.noticeboardapp.R;
 import com.jyotitech.noticeboardapp.adapter.NoticeListAdapter;
+import com.jyotitech.noticeboardapp.interfaces.OutdatedResourceSubscriber;
 import com.jyotitech.noticeboardapp.model.Notice;
+import com.jyotitech.noticeboardapp.model.NoticeBoard;
 import com.jyotitech.noticeboardapp.model.UserMember;
+import com.jyotitech.noticeboardapp.sugar_models.SONotice;
+import com.jyotitech.noticeboardapp.sugar_models.SONoticeBoard;
+import com.jyotitech.noticeboardapp.sugar_models.SOUser;
+import com.jyotitech.noticeboardapp.sugar_models.SOUserMember;
+import com.jyotitech.noticeboardapp.utils.AppPreferences;
 import com.jyotitech.noticeboardapp.utils.KeyConstants;
+import com.jyotitech.noticeboardapp.utils.NetworkUtils;
 import com.jyotitech.noticeboardapp.utils.NotificationHandler;
 import com.jyotitech.noticeboardapp.utils.ToastMaker;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by kiran on 20-Apr-16.
  */
-public class NoticeListActivity extends AppCompatActivity {
+public class NoticeListActivity extends OutdatedResourceSubscriberActivity implements OutdatedResourceSubscriber {
 
     private static final String TAG = NoticeListActivity.class.getSimpleName();
     private static final int SELECT_FILE = 200;
     private static final int REQUEST_CAMERA = 100;
 
-    private List<Notice> notices;
     private NoticeListAdapter noticeListAdapter;
-    private SharedPreferences sharedPreferences;
     private Dialog dialogAddNotice;
-    private Firebase firebaseNotice;
+
     private EditText edtTitle;
     private TextView txtAttachment;
     private EditText edtDescription;
@@ -77,7 +82,7 @@ public class NoticeListActivity extends AppCompatActivity {
     private ImageView imgDialog;
     private RelativeLayout rltProgress;
     private long lastNoticeId = 0;
-
+    private SONoticeBoard selectedNoticeBoard;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,25 +98,48 @@ public class NoticeListActivity extends AppCompatActivity {
 
         setProgress(true);
 
-        final long selectedNoticeBoardId = getIntent().getLongExtra(KeyConstants.EXTRA_FROM_NOTICE_BOARD_LIST_TO_NOTICE_LIST_ACTIVITY, 0);
-        sharedPreferences = getSharedPreferences(KeyConstants.SPREF_NAME, Context.MODE_PRIVATE);
-        firebaseNotice = new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE);
+        long selectedNoticeBoardId = getIntent().getLongExtra(KeyConstants.EXTRA_FROM_NOTICE_BOARD_LIST_TO_NOTICE_LIST_ACTIVITY, 0);
+        selectedNoticeBoard = SONoticeBoard.findNoticeBoardById(selectedNoticeBoardId);
 
-        firebaseNotice.orderByChild("id").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Notice notice = snapshot.getValue(Notice.class);
-                    lastNoticeId = notice.getId();
-                }
+        if(selectedNoticeBoard == null) {
+            finish();
+            return;
+        }
+
+        if (fab != null) {
+            if(selectedNoticeBoard.isAppOwnerIsOwnerOfNoticeBoard()) {
+                fab.setVisibility(View.GONE);
             }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
+            else {
+                fab.setVisibility(View.VISIBLE);
+                fab.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        edtTitle.setText("");
+                        edtDescription.setText("");
+                        txtAttachment.setText("Add attachment");
+                        txtAttachment.setTextColor(getResources().getColor(R.color.grey_555555));
+                        //imgDialog.setImageBitmap(null);
+                        imgString = "";
+                        thumbnail = null;
+                        dialogAddNotice.show();
+                    }
+                });
             }
-        });
+        }
 
+        recList.setHasFixedSize(false);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        recList.setLayoutManager(llm);
+        noticeListAdapter = new NoticeListAdapter(this);
+        recList.setAdapter(noticeListAdapter);
+
+        createAddNoticeDialog();
+        updateNotices();
+    }
+
+    private void createAddNoticeDialog() {
         // Create custom dialog object
         dialogAddNotice = new Dialog(this);
         // Include dialog.xml file
@@ -136,131 +164,32 @@ public class NoticeListActivity extends AppCompatActivity {
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String title = edtTitle.getText().toString().trim();
-                if (title.isEmpty()) {
+                if (edtTitle.getText().toString().trim().isEmpty()) {
                     ToastMaker.createShortToast(R.string.error_enter_title, mActivityContext);
                     return;
                 }
-                String description = edtDescription.getText().toString().trim();
-                if (description.isEmpty()) {
+                if (edtDescription.getText().toString().trim().isEmpty()) {
                     ToastMaker.createShortToast(R.string.error_enter_description, mActivityContext);
                     return;
                 }
 
-                //long largestNoticeId = 0;
-
-                Notice notice = new Notice();
-                notice.setCreatedAt(Calendar.getInstance().getTimeInMillis());
-                notice.setDescription(description);
-                notice.setTitle(title);
-                if (imgString != null)
-                    notice.setAttachments(imgString);
-                notice.setNoticeBoardId(selectedNoticeBoardId);
-                UserMember userMember = new UserMember();
-                userMember.setId(sharedPreferences.getLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, 0));
-                userMember.setFullname(sharedPreferences.getString(KeyConstants.SPREF_KEY_FOR_FULL_NAME, ""));
-                userMember.setPermissions(KeyConstants.PERMISSION_WRITE);
-                notice.setOwner(userMember);
-                notice.setId(++lastNoticeId);
-
-                Map<String, Object> updateHashmap = new HashMap<>();
-                updateHashmap.put("lastModifiedAt", notice.getCreatedAt());
-                //Push notice to firebase
-                firebaseNotice.push().setValue(notice);
-                notices.add(notice);
-                noticeListAdapter.notifyDataSetChanged();
-                dialogAddNotice.dismiss();
-
+                /**Process the request **/
+                if (NetworkUtils.isConnectedToInternet(mAppContext)) {
+                    processAddNoticeRequest();
+                } else {
+                    ToastMaker.createShortToast(R.string.toast_internet_connection_error, mActivityContext);
+                }
             }
         });
 
+        btnCancel.setTag(dialogAddNotice);
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Close dialog
-                dialogAddNotice.hide();
+                ((Dialog) v.getTag()).hide();
             }
         });
-
-        if (fab != null) {
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    edtTitle.setText("");
-                    edtDescription.setText("");
-                    txtAttachment.setText("Add attachment");
-                    txtAttachment.setTextColor(getResources().getColor(R.color.grey_555555));
-                    //imgDialog.setImageBitmap(null);
-                    imgString = "";
-                    thumbnail = null;
-                    dialogAddNotice.show();
-                }
-            });
-        }
-
-        recList.setHasFixedSize(false);
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        llm.setOrientation(LinearLayoutManager.VERTICAL);
-        recList.setLayoutManager(llm);
-        notices = new ArrayList<>();
-        final long appOwnerId = sharedPreferences.getLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, 0);
-        noticeListAdapter = new NoticeListAdapter(this, notices, appOwnerId);
-        recList.setAdapter(noticeListAdapter);
-
-        Firebase firebase = new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE);
-        firebase.orderByChild("noticeBoardId").equalTo(selectedNoticeBoardId)
-                .addValueEventListener(new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        notices.clear();
-                        for (DataSnapshot snapshot1 : dataSnapshot.getChildren()) {
-                            Notice notice = snapshot1.getValue(Notice.class);
-                            notices.add(notice);
-                        }
-
-                        noticeListAdapter.notifyDataSetChanged();
-                        setProgress(false);
-                    }
-
-                    @Override
-                    public void onCancelled(FirebaseError firebaseError) {
-
-                    }
-                });
-
-        firebase.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Notice notice = dataSnapshot.getValue(Notice.class);
-                Log.e(TAG, "notify " + appOwnerId + " " + notice.getOwner().getId());
-                if(appOwnerId != notice.getOwner().getId()) {
-                    NotificationHandler notificationHandler = new NotificationHandler(NoticeListActivity.this);
-                    notificationHandler.showNotification("Notice added by "+ notice.getOwner().getFullname(), notice.getDescription());
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-
     }
 
     @Override
@@ -271,10 +200,23 @@ public class NoticeListActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    private void setProgress(boolean flag) {
+        if (flag) {
+            rltProgress.setVisibility(View.VISIBLE);
+            fab.setVisibility(View.GONE);
+            recList.setVisibility(View.GONE);
+        }
+        else {
+            rltProgress.setVisibility(View.GONE);
+            fab.setVisibility(View.VISIBLE);
+            recList.setVisibility(View.VISIBLE);
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_notice_board, menu);
+        //getMenuInflater().inflate(R.menu.menu_notice_board, menu);
         return true;
     }
 
@@ -287,30 +229,89 @@ public class NoticeListActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_logout) {
-            SharedPreferences sPref = getSharedPreferences(KeyConstants.SPREF_NAME, MODE_PRIVATE);
-            SharedPreferences.Editor editor = sPref.edit();
-            editor.clear().commit();
-
-            Intent i = new Intent(NoticeListActivity.this, LoginActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(i);
-            finish();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    private void setProgress(boolean flag) {
-        if (flag) {
-            rltProgress.setVisibility(View.VISIBLE);
-            fab.setVisibility(View.GONE);
-            recList.setVisibility(View.GONE);
-        } else {
-            rltProgress.setVisibility(View.GONE);
-            fab.setVisibility(View.VISIBLE);
-            recList.setVisibility(View.VISIBLE);
-        }
+    private void processAddNoticeRequest() {
+        new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE).orderByChild("id").limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Notice notice = snapshot.getValue(Notice.class);
+                    lastNoticeId = notice.getId();
+                }
+
+                Notice notice = new Notice();
+                notice.setCreatedAt(Calendar.getInstance().getTimeInMillis());
+                notice.setDescription(edtDescription.getText().toString().trim());
+                notice.setTitle(edtTitle.getText().toString().trim());
+                if (imgString != null)
+                    notice.setAttachments(imgString);
+                notice.setNoticeBoardId(selectedNoticeBoard.getNoticeBoardId());
+
+                SOUser appOwner = SOUser.findByUserId(AppPreferences.getInstance().getAppOwnerId());
+                if (appOwner != null) {
+                    UserMember userMember = new UserMember();
+                    userMember.setId(appOwner.getUserId());
+                    userMember.setFullname(appOwner.getFullname());
+                    userMember.setPermissions(KeyConstants.PERMISSION_WRITE);
+                    notice.setOwner(userMember);
+                }
+                notice.setId(++lastNoticeId);
+
+                SONotice soNotice = new SONotice();
+                soNotice.setTitle(notice.getTitle());
+                soNotice.setDescription(notice.getDescription());
+                soNotice.setCreatedAt(notice.getCreatedAt());
+                soNotice.setNoticeBoardId(notice.getNoticeBoardId());
+                soNotice.setNoticeId(notice.getId());
+                soNotice.setOwner(AppPreferences.getInstance().getAppOwnerId());
+                soNotice.save();
+
+                noticeListAdapter.addDataToDatasource(soNotice);
+
+                //Push notice to firebase
+                new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE).push().setValue(notice, new Firebase.CompletionListener() {
+                    @Override
+                    public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                        if (firebaseError != null) {
+                            Log.e(TAG, getString(R.string.toast_error_in_data_sync) + "\n" + firebaseError.getMessage());
+                        } else {
+                            Log.e(TAG, getString(R.string.toast_data_synced));
+                        }
+                    }
+                });
+                dialogAddNotice.dismiss();
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e(TAG, firebaseError.getMessage());
+            }
+        });
+    }
+
+    private void updateNotices() {
+        new AsyncTask<String, Void, List<SONotice>>() {
+            @Override
+            protected void onPreExecute() {
+                setProgress(true);
+            }
+
+            @Override
+            protected List<SONotice> doInBackground(String... params) {
+                return SONotice.find(SONotice.class, "notice_board_id=?", params[0]);
+            }
+
+            @Override
+            protected void onPostExecute(List<SONotice> notices) {
+                noticeListAdapter.setDataSource(notices);
+                setProgress(false);
+            }
+        }.execute(String.valueOf(selectedNoticeBoard.getNoticeBoardId()));
     }
 
     private void selectImage() {
@@ -392,8 +393,18 @@ public class NoticeListActivity extends AppCompatActivity {
 
             }
         }
-
     }
 
+    @Override
+    public void onDatasetChanged(String dataset) {
+        if (dataset.equals(KeyConstants.OUTDATED_RESOURCE_NOTICE)) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    updateNotices();
+                }
+            });
+        }
+    }
 }
 

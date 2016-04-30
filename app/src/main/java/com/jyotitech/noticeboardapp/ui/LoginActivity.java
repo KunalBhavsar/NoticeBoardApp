@@ -16,24 +16,25 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 import com.jyotitech.noticeboardapp.R;
+import com.jyotitech.noticeboardapp.interfaces.OutdatedResourceSubscriber;
 import com.jyotitech.noticeboardapp.model.User;
+import com.jyotitech.noticeboardapp.sugar_models.SOUser;
 import com.jyotitech.noticeboardapp.utils.ActivityUtils;
+import com.jyotitech.noticeboardapp.utils.AppPreferences;
 import com.jyotitech.noticeboardapp.utils.KeyConstants;
 import com.jyotitech.noticeboardapp.utils.NetworkUtils;
 import com.jyotitech.noticeboardapp.utils.ToastMaker;
 
 /**
- * Created by kiran on 22-Apr-16.
+ * Created by Pinky Walve on 22-Apr-16.
  */
-public class LoginActivity extends Activity {
+public class LoginActivity extends OutdatedResourceSubscriberActivity {
 
     private static final String TAG = LoginActivity.class.getSimpleName();
-    SharedPreferences sPref;
     EditText edtUsername;
     EditText edtPassword;
     Button btnLogin;
     Button btnRegister;
-    Firebase firebase;
     LoginActivity mActivityContext;
     Context mAppContext;
     ProgressDialog progressDialog;
@@ -46,10 +47,7 @@ public class LoginActivity extends Activity {
         mAppContext = getApplicationContext();
         mActivityContext = this;
 
-
-        sPref = getSharedPreferences(KeyConstants.SPREF_NAME, Context.MODE_PRIVATE);
-
-        if(sPref.getBoolean(KeyConstants.SPREF_KEY_FOR_USER_LOGGED_IN, false)) {
+        if (AppPreferences.getInstance().isLoggedIn()) {
             Intent intent = new Intent(mActivityContext, NoticeBoardListActivity.class);
             mActivityContext.startActivity(intent);
             finish();
@@ -64,8 +62,6 @@ public class LoginActivity extends Activity {
         btnLogin = (Button) findViewById(R.id.btn_login);
         btnRegister = (Button) findViewById(R.id.btn_register);
 
-        firebase = new Firebase(KeyConstants.FIREBASE_RESOURCE_USER);
-
         btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,37 +75,48 @@ public class LoginActivity extends Activity {
                 ActivityUtils.hideKeyboard(mActivityContext);
                 if (NetworkUtils.isConnectedToInternet(mAppContext)) {
                     progressDialog.show();
-                    firebase.orderByChild("username").equalTo(edtUsername.getText().toString()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    new Firebase(KeyConstants.FIREBASE_RESOURCE_USER).orderByChild("username").equalTo(edtUsername.getText().toString()).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot snapshot) {
                             // do some stuff once
                             boolean usernameNotPresent = true;
                             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                                 User user = dataSnapshot.getValue(User.class);
-                                 usernameNotPresent = false;
+                                usernameNotPresent = false;
                                 if (!user.getPassword().equals(edtPassword.getText().toString())) {
                                     ToastMaker.createShortToast(R.string.toast_wrong_login_input, mActivityContext);
                                 }
                                 else {
-                                    SharedPreferences.Editor editor = sPref.edit();
-                                    editor.putLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, user.getId());
-                                    editor.putString(KeyConstants.SPREF_KEY_FOR_USERNAME, user.getUsername());
-                                    editor.putString(KeyConstants.SPREF_KEY_FOR_PASSWORD, user.getPassword());
-                                    editor.putString(KeyConstants.SPREF_KEY_FOR_EMAIL, user.getEmail());
-                                    editor.putString(KeyConstants.SPREF_KEY_FOR_MOBILE_NUMBER, user.getMobile());
-                                    editor.putString(KeyConstants.SPREF_KEY_FOR_FULL_NAME, user.getFullname());
-                                    editor.putBoolean(KeyConstants.SPREF_KEY_FOR_USER_LOGGED_IN, true);
-                                    editor.apply();
+                                    AppPreferences.getInstance().setAppOwnerId(user.getId());
+                                    AppPreferences.getInstance().setIsLoggedIn(true);
 
-                                    Intent intent = new Intent(mActivityContext, NoticeBoardListActivity.class);
-                                    mActivityContext.startActivity(intent);
-                                    finish();
+                                    new Firebase(KeyConstants.FIREBASE_BASE_URL).orderByValue().addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            Log.i(TAG, "Called on data changed");
+                                            ((NoticeBoardApplication) mAppContext).processUsers(dataSnapshot.child(KeyConstants.FIREBASE_KEY_USER));
+                                            ((NoticeBoardApplication) mAppContext).processNoticeBoards(dataSnapshot.child(KeyConstants.FIREBASE_KEY_NOTICEBOARD));
+                                            ((NoticeBoardApplication) mAppContext).processNotices(dataSnapshot.child(KeyConstants.FIREBASE_KEY_NOTICE));
+
+                                            progressDialog.dismiss();
+                                            Intent intent = new Intent(mActivityContext, NoticeBoardListActivity.class);
+                                            mActivityContext.startActivity(intent);
+
+                                            ((NoticeBoardApplication) mAppContext).listenForDataChanges();
+                                            finish();
+                                        }
+
+                                        @Override
+                                        public void onCancelled(FirebaseError firebaseError) {
+                                            errorInSyncingData();
+                                            Log.e(TAG, "Error in syncing users data : s" + firebaseError.getDetails());
+                                        }
+                                    });
                                 }
                             }
                             if (usernameNotPresent) {
                                 ToastMaker.createShortToast(R.string.toast_register_first, mActivityContext);
                             }
-                            progressDialog.dismiss();
                         }
 
                         @Override
@@ -118,17 +125,23 @@ public class LoginActivity extends Activity {
                             Log.e(TAG, firebaseError.getMessage());
                         }
                     });
-                }
-                else {
+                } else {
                     ToastMaker.createShortToast(R.string.toast_internet_connection_error, mActivityContext);
                 }
             }
         });
     }
 
+    public void errorInSyncingData() {
+        ToastMaker.createShortToast(R.string.toast_error_in_data_sync, LoginActivity.this);
+        AppPreferences.getInstance().setAppOwnerId(0);
+        AppPreferences.getInstance().setIsLoggedIn(false);
+        SOUser.deleteAll(SOUser.class);
+    }
+
     @Override
     protected void onDestroy() {
-        if(progressDialog != null && progressDialog.isShowing()) {
+        if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
         super.onDestroy();

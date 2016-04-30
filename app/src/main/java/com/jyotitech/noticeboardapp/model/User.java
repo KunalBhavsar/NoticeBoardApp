@@ -1,9 +1,16 @@
 package com.jyotitech.noticeboardapp.model;
 
 /**
- * Created by kiran on 19-Apr-16.
+ * Created by Pinky Walve on 19-Apr-16.
  */
 public class User {
+    public static final String CHILD_EMAIL = "email";
+    public static final String CHILD_FULLNAME = "fullname";
+    public static final String CHILD_ID = "id";
+    public static final String CHILD_MOBILE = "mobile";
+    public static final String CHILD_PASSWORD = "password";
+    public static final String CHILD_USERNAME = "username";
+
     private String email;
     private String fullname;
     private long id;

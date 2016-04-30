@@ -23,7 +23,7 @@
                 android:layout_below="@+id/txt_logo"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="10dp"
-                android:src="@drawable/logo"/>
+                android:src="@drawable/ic_logo"/>
 
             <TextView android:id="@+id/txt_logo"
                       android:layout_width="wrap_content"

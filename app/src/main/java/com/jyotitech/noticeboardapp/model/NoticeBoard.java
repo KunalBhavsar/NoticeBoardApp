@@ -3,9 +3,15 @@ package com.jyotitech.noticeboardapp.model;
 import java.util.List;
 
 /**
- * Created by kiran on 20-Apr-16.
+ * Created by Pinky Walve on 20-Apr-16.
  */
 public class NoticeBoard {
+
+    public static final String CHILD_ID = "id";
+    public static final String CHILD_TITLE = "title";
+    public static final String CHILD_MEMBERS = "members";
+    public static final String CHILD_LAST_NOTIFIED_AT = "lastModifiedAt";
+
     private long id;
     private String title;
     private List<UserMember> members;

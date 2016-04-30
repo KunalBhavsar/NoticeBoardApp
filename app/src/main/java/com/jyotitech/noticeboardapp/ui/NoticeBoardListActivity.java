@@ -1,9 +1,9 @@
 package com.jyotitech.noticeboardapp.ui;
 
+import android.app.Application;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -28,31 +28,35 @@ import com.firebase.client.ValueEventListener;
 import com.jyotitech.noticeboardapp.R;
 import com.jyotitech.noticeboardapp.adapter.NoticeBoardListAdapter;
 import com.jyotitech.noticeboardapp.adapter.UserListAdapter;
+import com.jyotitech.noticeboardapp.interfaces.OutdatedResourceSubscriber;
 import com.jyotitech.noticeboardapp.model.NoticeBoard;
 import com.jyotitech.noticeboardapp.model.UserMember;
+import com.jyotitech.noticeboardapp.sugar_models.SONotice;
+import com.jyotitech.noticeboardapp.sugar_models.SONoticeBoard;
+import com.jyotitech.noticeboardapp.sugar_models.SOUser;
+import com.jyotitech.noticeboardapp.sugar_models.SOUserMember;
+import com.jyotitech.noticeboardapp.utils.AppPreferences;
 import com.jyotitech.noticeboardapp.utils.KeyConstants;
+import com.jyotitech.noticeboardapp.utils.NetworkUtils;
+import com.jyotitech.noticeboardapp.utils.NotificationHandler;
 import com.jyotitech.noticeboardapp.utils.ToastMaker;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class NoticeBoardListActivity extends AppCompatActivity {
+public class NoticeBoardListActivity extends OutdatedResourceSubscriberActivity implements OutdatedResourceSubscriber {
 
     private static final String TAG = NoticeBoardListActivity.class.getSimpleName();
-    private List<NoticeBoard> noticeBoards;
     private NoticeBoardListAdapter noticeBoardListAdapter;
-    private SharedPreferences sharedPreferences;
     private NoticeBoardListActivity mActivityContext;
-    private Context mAppContext;
+    private Application mAppContext;
     private EditText edtTitle;
     private UserListAdapter userListAdapter;
-    private CheckBox chkSelectAll;
     private Dialog dialogAddNoticeBoard;
     private long largestNoticeBoardId;
-    private Firebase firebaseUser;
-    private Firebase firebaseNotice;
-    private Firebase firebaseNoticeBoard;
     private FloatingActionButton fab;
     private RecyclerView recList;
     private RelativeLayout rltProgress;
@@ -64,7 +68,7 @@ public class NoticeBoardListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_notice_board_or_notice_list);
 
         mActivityContext = this;
-        mAppContext = getApplicationContext();
+        mAppContext = getApplication();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -72,15 +76,73 @@ public class NoticeBoardListActivity extends AppCompatActivity {
         fab = (FloatingActionButton) findViewById(R.id.fab);
         recList = (RecyclerView) findViewById(R.id.recycler_view);
         rltProgress = (RelativeLayout) findViewById(R.id.rlt_progress);
-        setProgress(true);
-        sharedPreferences = getSharedPreferences(KeyConstants.SPREF_NAME, Context.MODE_PRIVATE);
 
-        firebaseUser = new Firebase(KeyConstants.FIREBASE_RESOURCE_USER);
-        firebaseNoticeBoard = new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICEBOARD);
-        firebaseNotice = new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE);
+        recList.setHasFixedSize(false);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        recList.setLayoutManager(llm);
+        noticeBoardListAdapter = new NoticeBoardListAdapter(this);
+        recList.setAdapter(noticeBoardListAdapter);
 
+        createAddNoticeBoardDialog();
+
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                edtTitle.setText("");
+                userListAdapter.clearSelectedList();
+                dialogAddNoticeBoard.show();
+            }
+        });
+
+        updateNoticeBoards();
+        updateUsersList();
+    }
+
+    private void updateNoticeBoards() {
+        new AsyncTask<Void, Void, List<SONoticeBoard>>() {
+            @Override
+            protected void onPreExecute() {
+                setProgress(true);
+            }
+
+            @Override
+            protected List<SONoticeBoard> doInBackground(Void... params) {
+                return SONoticeBoard.find(SONoticeBoard.class, null, null);
+            }
+
+            @Override
+            protected void onPostExecute(List<SONoticeBoard> noticeBoards) {
+                noticeBoardListAdapter.setDataSource(noticeBoards);
+                setProgress(false);
+            }
+        }.execute();
+    }
+
+    private void updateUsersList() {
+        new AsyncTask<Void, Void, List<SOUser>>() {
+            @Override
+            protected void onPreExecute() {
+                setProgress(true);
+            }
+
+            @Override
+            protected List<SOUser> doInBackground(Void... params) {
+                return SOUser.find(SOUser.class, null, null);
+            }
+
+            @Override
+            protected void onPostExecute(List<SOUser> result) {
+                userListAdapter.addDataSource(result);
+                setProgress(false);
+            }
+        }.execute();
+    }
+
+    private void createAddNoticeBoardDialog() {
         // Create custom dialog object
         dialogAddNoticeBoard = new Dialog(this);
+
         // Include dialog.xml file
         dialogAddNoticeBoard.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogAddNoticeBoard.setContentView(R.layout.dialog_add_notice_board);
@@ -91,50 +153,40 @@ public class NoticeBoardListActivity extends AppCompatActivity {
         Button btnAdd = (Button) dialogAddNoticeBoard.findViewById(R.id.btn_add);
         Button btnCancel = (Button) dialogAddNoticeBoard.findViewById(R.id.btn_cancel);
         edtTitle = (EditText) dialogAddNoticeBoard.findViewById(R.id.edt_notice_board_title);
-        chkSelectAll = (CheckBox) dialogAddNoticeBoard.findViewById(R.id.checkbox);
+        CheckBox chkSelectAll = (CheckBox) dialogAddNoticeBoard.findViewById(R.id.checkbox);
 
         chkSelectAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                CheckBox checkbox = (CheckBox)v;
+                CheckBox checkbox = (CheckBox) v;
                 userListAdapter.setAllSelection(checkbox.isChecked());
             }
         });
 
-        userListAdapter = new UserListAdapter(mActivityContext);
+        userListAdapter = new UserListAdapter(mActivityContext, chkSelectAll);
         lstUsers.setAdapter(userListAdapter);
 
-        // if decline button is clicked, close the custom dialog
+        btnAdd.setTag(dialogAddNoticeBoard);
+        // if accept button is clicked, store notice board on server
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String title = edtTitle.getText().toString().trim();
-                if(title.isEmpty()) {
+                /**Validate**/
+                if (edtTitle.getText().toString().trim().isEmpty()) {
                     ToastMaker.createShortToast(R.string.error_enter_title, mActivityContext);
                     return;
                 }
-                List<UserMember> selectedUsers = userListAdapter.getSelectedUserMembersList();
-                if(selectedUsers.isEmpty()) {
+                if (userListAdapter.getSelectedUserMembersList().isEmpty()) {
                     ToastMaker.createShortToast(R.string.error_select_user, mActivityContext);
                     return;
                 }
-                //Add appowner with write permissions
-                UserMember userMember = new UserMember();
-                userMember.setId(sharedPreferences.getLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, 0));
-                userMember.setFullname(sharedPreferences.getString(KeyConstants.SPREF_KEY_FOR_FULL_NAME, ""));
-                userMember.setPermissions(KeyConstants.PERMISSION_WRITE);
-                selectedUsers.add(userMember);
 
-                //Push notice board to firebase
-                NoticeBoard noticeBoard =  new NoticeBoard();
-                noticeBoard.setTitle(title);
-                noticeBoard.setMembers(selectedUsers);
-                //noticeBoard.setNotices(new ArrayList<Notice>());
-                noticeBoard.setLastModifiedAt(Calendar.getInstance().getTimeInMillis());
-                noticeBoard.setId(++largestNoticeBoardId);
-                firebaseNoticeBoard.push().setValue(noticeBoard);
-                // Close dialog
-                dialogAddNoticeBoard.hide();
+                /**Process the request **/
+                if (NetworkUtils.isConnectedToInternet(mAppContext)) {
+                    processAddNoticeBoardRequest();
+                } else {
+                    ToastMaker.createShortToast(R.string.toast_internet_connection_error, mActivityContext);
+                }
             }
         });
 
@@ -145,26 +197,73 @@ public class NoticeBoardListActivity extends AppCompatActivity {
                 dialogAddNoticeBoard.hide();
             }
         });
+    }
 
-        firebaseUser.addValueEventListener(new ValueEventListener() {
+    private void processAddNoticeBoardRequest() {
+        /** Get the largest id from server **/
+        new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICEBOARD).orderByChild("id")
+                .limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                long appOwnerId = sharedPreferences.getLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, 0);
-                List<UserMember> userMemberList = new ArrayList<>();
-
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    long childId = (long) snapshot.child("id").getValue();
-                    if(appOwnerId != childId) {
-                        UserMember userMember = new UserMember();
-                        userMember.setFullname((String) snapshot.child("fullname").getValue());
-                        userMember.setId(childId);
-                        userMember.setPermissions(KeyConstants.PERMISSION_READ);
-                        userMemberList.add(userMember);
-                    }
+                    NoticeBoard noticeBoard = snapshot.getValue(NoticeBoard.class);
+                    largestNoticeBoardId = noticeBoard.getId();
                 }
-                userListAdapter.addDataSource(userMemberList);
-                setProgress(false);
-                setAllSelectedCheckbox();
+
+                /**Send data to server**/
+                List<UserMember> userMemberList = new ArrayList<>();
+                //Add appowner with write permissions
+                UserMember userMember;
+                SOUser soUser = SOUser.getAppOwner();
+                if (soUser != null) {
+                    userMember = new UserMember();
+                    userMember.setId(soUser.getUserId());
+                    userMember.setFullname(soUser.getFullname());
+                    userMember.setPermissions(KeyConstants.PERMISSION_WRITE);
+                    userMemberList.add(userMember);
+                } else {
+                    Log.e(TAG, "App owner not found");
+                }
+
+                //Add remaining selected users
+                HashMap<SOUser, String> selectedUserHashMap = userListAdapter.getSelectedUserMembersList();
+                for (Map.Entry<SOUser, String> entrySet : selectedUserHashMap.entrySet()) {
+                    userMember = new UserMember();
+                    userMember.setId(entrySet.getKey().getUserId());
+                    userMember.setFullname(entrySet.getKey().getFullname());
+                    userMember.setPermissions(entrySet.getValue());
+                    userMemberList.add(userMember);
+                }
+
+                //Push notice board to firebase
+                NoticeBoard noticeBoard = new NoticeBoard();
+                noticeBoard.setTitle(edtTitle.getText().toString().trim());
+                noticeBoard.setMembers(userMemberList);
+                //noticeBoard.setNotices(new ArrayList<Notice>());
+                noticeBoard.setLastModifiedAt(Calendar.getInstance().getTimeInMillis());
+                noticeBoard.setId(++largestNoticeBoardId);
+                new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICEBOARD).push().setValue(noticeBoard);
+
+                /** Save data to local database **/
+                SONoticeBoard soNoticeBoard = new SONoticeBoard();
+                soNoticeBoard.setNoticeBoardId(largestNoticeBoardId);
+                soNoticeBoard.setLastVisitedAt(noticeBoard.getLastModifiedAt());
+                soNoticeBoard.setLastModifiedAt(noticeBoard.getLastModifiedAt());
+                soNoticeBoard.setLastVisitedAt(System.currentTimeMillis());
+                soNoticeBoard.setTitle(noticeBoard.getTitle());
+                soNoticeBoard.save();
+                SOUserMember soUserMember;
+                for (UserMember userMemberFor : userMemberList) {
+                    soUserMember = new SOUserMember();
+                    soUserMember.setPermissions(userMemberFor.getPermissions());
+                    soUserMember.setNoticeBoardId(largestNoticeBoardId);
+                    soUserMember.setUserId(userMemberFor.getId());
+                    soUserMember.save();
+                }
+                noticeBoardListAdapter.addDataToDataSource(soNoticeBoard);
+
+                // Close dialog
+                dialogAddNoticeBoard.hide();
             }
 
             @Override
@@ -172,54 +271,6 @@ public class NoticeBoardListActivity extends AppCompatActivity {
                 Log.e(TAG, firebaseError.getMessage());
             }
         });
-
-        if (fab != null) {
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    edtTitle.setText("");
-                    userListAdapter.clearSelectedList();
-                    dialogAddNoticeBoard.show();
-                }
-            });
-        }
-
-        recList.setHasFixedSize(false);
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        llm.setOrientation(LinearLayoutManager.VERTICAL);
-        recList.setLayoutManager(llm);
-        noticeBoards = new ArrayList<>();
-        long appOwnerId = sharedPreferences.getLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, 0);
-        Log.i(TAG, "appOwnerId " + appOwnerId);
-        noticeBoardListAdapter = new NoticeBoardListAdapter(this, noticeBoards, appOwnerId);
-        recList.setAdapter(noticeBoardListAdapter);
-
-        firebaseNoticeBoard.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                noticeBoards.clear();
-                long appOwnerId = sharedPreferences.getLong(KeyConstants.SPREF_KEY_APP_OWNER_ID, 0);
-                for (DataSnapshot noticeBoardSnapshot : snapshot.getChildren()) {
-                    NoticeBoard noticeBoard = noticeBoardSnapshot.getValue(NoticeBoard.class);
-                    if(noticeBoard.getId() > largestNoticeBoardId) {
-                        largestNoticeBoardId = noticeBoard.getId();
-                    }
-                    for (UserMember userMember : noticeBoard.getMembers()) {
-                        Log.i(TAG, "userMember " + userMember.getId());
-                        if (userMember.getId() == appOwnerId) {
-                            noticeBoards.add(noticeBoard);
-                        }
-                    }
-                }
-                noticeBoardListAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(FirebaseError error) {
-                Log.e(TAG, error.getMessage());
-            }
-        });
-
     }
 
     private void setProgress(boolean flag) {
@@ -237,14 +288,10 @@ public class NoticeBoardListActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        if(dialogAddNoticeBoard != null) {
+        if (dialogAddNoticeBoard != null) {
             dialogAddNoticeBoard.dismiss();
         }
         super.onDestroy();
-    }
-
-    public void setAllSelectedCheckbox() {
-        chkSelectAll.setChecked(userListAdapter.isAllSelected());
     }
 
     @Override
@@ -263,18 +310,45 @@ public class NoticeBoardListActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_logout) {
+            //Clear preferences
+            AppPreferences.getInstance().clear();
 
-            SharedPreferences sPref = getSharedPreferences(KeyConstants.SPREF_NAME, MODE_PRIVATE);
-            SharedPreferences.Editor editor = sPref.edit();
-            editor.clear().commit();
+            //Clear whole database
+            SONoticeBoard.deleteAll(SONoticeBoard.class);
+            SONotice.deleteAll(SONotice.class);
+            SOUser.deleteAll(SOUser.class);
+            SOUserMember.deleteAll(SOUserMember.class);
 
-            Intent i = new Intent(NoticeBoardListActivity.this, LoginActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(i);
+            NotificationHandler.getInstance().clearNotifications();
+            ((NoticeBoardApplication)mAppContext).removeGlobalDataListner();
+            //Launch fresh login activity
+            Intent intent = new Intent(NoticeBoardListActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
             finish();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onDatasetChanged(String dataset) {
+        if (dataset.equals(KeyConstants.OUTDATED_RESOURCE_NOTICE_BOARD)) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    updateNoticeBoards();
+                }
+            });
+        }
+        else if(dataset.equals(KeyConstants.OUTDATED_RESOURCE_USER)){
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    updateUsersList();
+                }
+            });
+        }
     }
 }

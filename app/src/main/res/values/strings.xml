@@ -17,7 +17,8 @@
     <string name="toast_email_already_in_use">This email is already in use, try another email</string>
     <string name="toast_mobile_already_in_use">This mobile number already in use, try another mobile number</string>
     <string name="toast_register_successfully">Registered successfully!!</string>
-
+    <string name="toast_data_synced">Data saved successfully!!</string>
+    <string name="toast_error_in_data_sync">Data could not be saved, Please try again later!!</string>
     <string name="loading_text">Loading...</string>
 
     <string name="error_enter_username">Enter username</string>

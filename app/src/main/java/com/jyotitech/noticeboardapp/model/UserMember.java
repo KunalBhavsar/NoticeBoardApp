@@ -1,9 +1,13 @@
 package com.jyotitech.noticeboardapp.model;
 
 /**
- * Created by kiran on 20-Apr-16.
+ * Created by Pinky Walve on 20-Apr-16.
  */
 public class UserMember {
+    public static final String CHILD_FULLNAME = "fullname";
+    public static final String CHILD_ID = "id";
+    public static final String CHILD_PERMISSION = "permissions";
+
     private long id;
     private String permissions;
     private String fullname;

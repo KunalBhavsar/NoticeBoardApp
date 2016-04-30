@@ -6,6 +6,15 @@ import java.util.List;
  * Created by kiran on 20-Apr-16.
  */
 public class Notice {
+
+    public static final String CHILD_ID = "id";
+    public static final String CHILD_TITLE = "title";
+    public static final String CHILD_DESCRIPTION = "description";
+    public static final String CHILD_ATTACHMENT = "attachments";
+    public static final String CHILD_OWNER = "owner";
+    public static final String CHILD_CREATED_AT = "createdAt";
+    public static final String CHILD_NOTICE_BOARD_ID = "noticeBoardId";
+
     private Long id;
     private String title;
     private String description;
