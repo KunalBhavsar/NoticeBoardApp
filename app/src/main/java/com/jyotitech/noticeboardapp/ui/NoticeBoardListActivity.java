@@ -128,7 +128,7 @@ public class NoticeBoardListActivity extends OutdatedResourceSubscriberActivity 
 
             @Override
             protected List<SOUser> doInBackground(Void... params) {
-                return SOUser.find(SOUser.class, null, null);
+                return SOUser.find(SOUser.class, SOUser.COLUMN_ID + "!=?", String.valueOf(AppPreferences.getInstance().getAppOwnerId()));
             }
 
             @Override

@@ -53,6 +53,7 @@ public class LoginActivity extends OutdatedResourceSubscriberActivity {
             finish();
         }
 
+        //getActionBar().setTitle(getString(R.string.title_login));
         progressDialog = new ProgressDialog(mActivityContext);
         progressDialog.setMessage(getString(R.string.loading_text));
         progressDialog.setCancelable(false);
@@ -115,6 +116,7 @@ public class LoginActivity extends OutdatedResourceSubscriberActivity {
                                 }
                             }
                             if (usernameNotPresent) {
+                                progressDialog.dismiss();
                                 ToastMaker.createShortToast(R.string.toast_register_first, mActivityContext);
                             }
                         }
@@ -133,6 +135,7 @@ public class LoginActivity extends OutdatedResourceSubscriberActivity {
     }
 
     public void errorInSyncingData() {
+        progressDialog.dismiss();
         ToastMaker.createShortToast(R.string.toast_error_in_data_sync, LoginActivity.this);
         AppPreferences.getInstance().setAppOwnerId(0);
         AppPreferences.getInstance().setIsLoggedIn(false);
