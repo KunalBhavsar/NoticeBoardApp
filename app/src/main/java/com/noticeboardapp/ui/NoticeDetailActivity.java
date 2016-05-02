@@ -1,7 +1,6 @@
 package com.noticeboardapp.ui;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,7 +10,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,11 +18,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.MutableData;
+import com.firebase.client.Transaction;
 import com.firebase.client.ValueEventListener;
 import com.noticeboardapp.R;
 import com.noticeboardapp.adapter.AttachmentAdapter;
@@ -69,24 +70,19 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
     private static final int SELECT_IMAGE_FILE = 200;
     private static final int REQUEST_CAMERA = 100;
 
-    String tempImageFilePath;
+    private boolean isEditNotice;
+    private String tempImageFilePath;
     private SONoticeBoard selectedNoticeBoard;
+    private SONotice soNoticeSelectedForEdit;
+    private RelativeLayout rltProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.dialog_add_notice);
+        setContentView(R.layout.activity_notice_detail);
 
         mActivityContext = this;
         mAppContext = getApplicationContext();
-
-        long selectedNoticeBoardId = getIntent().getLongExtra(KeyConstants.EXTRA_FROM_NOTICE_BOARD_LIST_TO_NOTICE_LIST_ACTIVITY, 0);
-        selectedNoticeBoard = SONoticeBoard.findNoticeBoardById(selectedNoticeBoardId);
-
-        if (selectedNoticeBoard == null) {
-            finish();
-            return;
-        }
 
         // set values for custom dialog components - text, image and button
         Button btnAdd = (Button) findViewById(R.id.btn_add);
@@ -95,6 +91,7 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
         btnAttachment = (Button) findViewById(R.id.btn_attachment);
         edtDescription = (EditText) findViewById(R.id.edt_notice_description);
         lstAttachments = (RecyclerView) findViewById(R.id.lst_attachments);
+        rltProgress = (RelativeLayout)findViewById(R.id.rlt_progress);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         lstAttachments.setLayoutManager(llm);
@@ -106,6 +103,91 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
                 selectImage();
             }
         });
+
+        if(getIntent().hasExtra(KeyConstants.EXTRA_FROM_NOTICE_BOARD_LIST_TO_NOTICE_LIST_ACTIVITY)) {
+            long selectedNoticeBoardId = getIntent().getLongExtra(KeyConstants.EXTRA_FROM_NOTICE_BOARD_LIST_TO_NOTICE_LIST_ACTIVITY, 0);
+            selectedNoticeBoard = SONoticeBoard.findNoticeBoardById(selectedNoticeBoardId);
+
+            if (selectedNoticeBoard == null) {
+                ToastMaker.createShortToast(R.string.toast_error_in_loading_image, mAppContext);
+                finish();
+                return;
+            }
+        }
+        else if(getIntent().hasExtra(KeyConstants.EXTRA_FROM_NOTICE_LIST_TO_NOTICE_DETAIL_ACTIVITY)) {
+            long selectedNoticeId = getIntent().getLongExtra(KeyConstants.EXTRA_FROM_NOTICE_LIST_TO_NOTICE_DETAIL_ACTIVITY, 0);
+            soNoticeSelectedForEdit = SONotice.findByNoticeId(selectedNoticeId);
+            isEditNotice = true;
+            if (soNoticeSelectedForEdit == null) {
+                ToastMaker.createShortToast(R.string.toast_error_in_loading_image, mAppContext);
+                finish();
+                return;
+            }
+
+            edtTitle.setText(soNoticeSelectedForEdit.getTitle());
+            edtDescription.setText(soNoticeSelectedForEdit.getDescription());
+            if(btnAdd != null)
+                btnAdd.setText("Update");
+            ImageButton btnDelete = (ImageButton)findViewById(R.id.btn_delete);
+            btnDelete.setVisibility(View.VISIBLE);
+            if(btnDelete != null)
+                btnDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(mActivityContext);
+                    alertDialogBuilder.setMessage(R.string.alert_delete_notice)
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if(NetworkUtils.isConnectedToInternet(mAppContext)) {
+                                        setProgress(true);
+                                        new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE).runTransaction(new Transaction.Handler() {
+                                            public Transaction.Result doTransaction(MutableData mutableData) {
+                                                Log.i(TAG, "select notice id " + soNoticeSelectedForEdit.getNoticeId());
+                                                for (MutableData mutableDataChild : mutableData.getChildren()) {
+                                                    Log.i(TAG, "select notice id " + (long) mutableDataChild.child("id").getValue());
+                                                    if (((long) mutableDataChild.child("id").getValue() == soNoticeSelectedForEdit.getNoticeId())) {
+                                                        mutableDataChild.setValue(null); // This removes the node.
+                                                        break;
+                                                    }
+                                                }
+                                                return Transaction.success(mutableData);
+                                            }
+
+                                            public void onComplete(FirebaseError error, boolean b, DataSnapshot data) {
+                                                // Handle completion
+                                                setProgress(false);
+                                                if(b) {
+                                                    soNoticeSelectedForEdit.delete();
+                                                    ToastMaker.createShortToast(R.string.toast_notice_deleted, mAppContext);
+                                                    finish();
+                                                }
+                                                else {
+                                                    ToastMaker.createShortToast(R.string.toast_error_in_data_sync, mAppContext);
+                                                }
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        ToastMaker.createShortToast(R.string.toast_internet_connection_error, mAppContext);
+                                    }
+                                }
+                            })
+                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    alertDialogBuilder.show();
+                }
+            });
+        }
+        else {
+            ToastMaker.createShortToast(R.string.toast_error_in_loading_image, mAppContext);
+            finish();
+            return;
+        }
 
         if (savedInstanceState != null) {
             tempImageFilePath = savedInstanceState.getString(SAVED_STATE_TEMP_IMAGE_PATH);
@@ -127,7 +209,7 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
 
                     /**Process the request **/
                     if (NetworkUtils.isConnectedToInternet(mAppContext)) {
-                        processAddNoticeRequest();
+                        processAddOrUpdateNoticeRequest();
                     } else {
                         ToastMaker.createShortToast(R.string.toast_internet_connection_error, mActivityContext);
                     }
@@ -144,13 +226,24 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
         }
     }
 
+    private void setProgress(boolean flag) {
+        if (flag) {
+            rltProgress.setVisibility(View.VISIBLE);
+            btnAttachment.setBackgroundColor(getResources().getColor(R.color.gray_glass));
+        } else {
+            rltProgress.setVisibility(View.GONE);
+            btnAttachment.setBackgroundColor(getResources().getColor(R.color.accent));
+        }
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putString(SAVED_STATE_TEMP_IMAGE_PATH, tempImageFilePath);
         super.onSaveInstanceState(outState);
     }
 
-    private void processAddNoticeRequest() {
+    private void processAddOrUpdateNoticeRequest() {
+        setProgress(true);
         new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE).orderByChild("id").limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -228,12 +321,14 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
                                 }
                             }
                         });
+                        setProgress(false);
                         finish();
                     }
 
                     @Override
                     public void onCancelled(FirebaseError firebaseError) {
-
+                        Log.e(TAG, firebaseError.getMessage());
+                        setProgress(false);
                     }
                 });
             }

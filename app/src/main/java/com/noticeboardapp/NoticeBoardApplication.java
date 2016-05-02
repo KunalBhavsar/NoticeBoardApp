@@ -1,4 +1,4 @@
-package com.noticeboardapp.ui;
+package com.noticeboardapp;
 
 import android.util.Log;
 
@@ -66,7 +66,9 @@ public class NoticeBoardApplication extends SugarApp implements OutdatedResource
             }
         };
 
-        new Firebase(KeyConstants.FIREBASE_BASE_URL).addValueEventListener(valueEventListener);
+        Firebase firebase = new Firebase(KeyConstants.FIREBASE_BASE_URL);
+        firebase.addListenerForSingleValueEvent(valueEventListener);
+        firebase.addValueEventListener(valueEventListener);
     }
 
     public synchronized void processDataSnapshotInTransaction(final DataSnapshot snapshot) {

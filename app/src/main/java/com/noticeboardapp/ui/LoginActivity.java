@@ -13,6 +13,7 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.noticeboardapp.NoticeBoardApplication;
 import com.noticeboardapp.model.User;
 import com.noticeboardapp.sugar_models.SOUser;
 import com.noticeboardapp.utils.ActivityUtils;

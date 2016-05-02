@@ -2,6 +2,7 @@ package com.noticeboardapp.ui;
 
 import android.support.v7.app.AppCompatActivity;
 
+import com.noticeboardapp.NoticeBoardApplication;
 import com.noticeboardapp.interfaces.OutdatedResourceSubscriber;
 
 /**

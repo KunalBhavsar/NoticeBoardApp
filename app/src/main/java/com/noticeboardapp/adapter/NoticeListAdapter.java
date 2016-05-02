@@ -1,5 +1,6 @@
 package com.noticeboardapp.adapter;
 
+import android.content.Intent;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -13,8 +14,10 @@ import android.widget.TextView;
 import com.noticeboardapp.R;
 import com.noticeboardapp.sugar_models.SONotice;
 import com.noticeboardapp.sugar_models.SOUser;
+import com.noticeboardapp.ui.NoticeDetailActivity;
 import com.noticeboardapp.ui.NoticeListActivity;
 import com.noticeboardapp.utils.AppPreferences;
+import com.noticeboardapp.utils.KeyConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,26 +82,21 @@ public class NoticeListAdapter extends RecyclerView.Adapter<NoticeListAdapter.No
         noticeViewHolder.createdBy.setText(owner != null ?
                 (owner.getUserId() == appOwnerId ? "Me" :owner.getFullname()) : "");
         noticeViewHolder.imgAttachment.setVisibility(View.GONE);
-
-/*        if(notice.getAttachments() != null) {
-            byte[] decodedString;
-            try{
-                decodedString = Base64.decode(notice.getAttachments(), Base64.DEFAULT);
-            }
-            catch (Exception e) {
-                decodedString = Base64.decode(notice.getAttachments(), Base64.URL_SAFE);
-            }
-
-            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-            noticeViewHolder.imgAttachment.setVisibility(View.VISIBLE);
-            noticeViewHolder.imgAttachment.setImageBitmap(decodedByte);
-        }*/
     }
 
     @Override
     public NoticeViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_notice, viewGroup, false);
-        return new NoticeViewHolder(v);
+        return new NoticeViewHolder(v, new NoticeViewHolder.IMyViewHolderClicks() {
+
+            @Override
+            public void onCardViewClicked(CardView cardView) {
+                long id = (long)cardView.getTag();
+                Intent intent = new Intent(mActivity, NoticeDetailActivity.class);
+                intent.putExtra(KeyConstants.EXTRA_FROM_NOTICE_LIST_TO_NOTICE_DETAIL_ACTIVITY, id);
+                mActivity.startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -138,20 +136,33 @@ public class NoticeListAdapter extends RecyclerView.Adapter<NoticeListAdapter.No
         }
     }
 
-    public static class NoticeViewHolder extends RecyclerView.ViewHolder {
+    public static class NoticeViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         CardView cardView;
         TextView title;
         TextView description;
         TextView createdBy;
         ImageView imgAttachment;
-
-        NoticeViewHolder(View itemView) {
+        IMyViewHolderClicks mListener;
+        NoticeViewHolder(View itemView, IMyViewHolderClicks mListener) {
             super(itemView);
             cardView = (CardView)itemView.findViewById(R.id.card_view);
             title = (TextView)itemView.findViewById(R.id.txt_title);
             description = (TextView)itemView.findViewById(R.id.txt_description);
             createdBy = (TextView)itemView.findViewById(R.id.txt_created_by);
+            this.mListener = mListener;
             imgAttachment = (ImageView)itemView.findViewById(R.id.img_attachment);
+            cardView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (v instanceof CardView){
+                mListener.onCardViewClicked((CardView)v);
+            }
+        }
+
+        public interface IMyViewHolderClicks {
+            void onCardViewClicked(CardView cardView);
         }
     }
 }

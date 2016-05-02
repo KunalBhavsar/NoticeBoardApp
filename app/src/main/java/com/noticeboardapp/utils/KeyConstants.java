@@ -16,6 +16,7 @@ public class KeyConstants {
     public static final String FIREBASE_RESOURCE_NOTICE = FIREBASE_BASE_URL + FIREBASE_KEY_NOTICE;
     public static final String FIREBASE_RESOURCE_MEDIA = FIREBASE_BASE_URL + FIREBASE_KEY_MEDIAS;
     public static final String EXTRA_FROM_NOTICE_BOARD_LIST_TO_NOTICE_LIST_ACTIVITY = "extra_from_noticeboard_list_to_notice_list_activity";
+    public static final String EXTRA_FROM_NOTICE_LIST_TO_NOTICE_DETAIL_ACTIVITY = "extra_from_notice_list_to_notice_detail_activity";
 
     public static final String OUTDATED_RESOURCE_USER = "user";
     public static final String OUTDATED_RESOURCE_NOTICE_BOARD = "notice_board";

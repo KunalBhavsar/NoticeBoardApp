@@ -28,6 +28,7 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.noticeboardapp.NoticeBoardApplication;
 import com.noticeboardapp.R;
 import com.noticeboardapp.adapter.NoticeBoardListAdapter;
 import com.noticeboardapp.adapter.UserListAdapter;
@@ -50,7 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NoticeBoardListActivity extends OutdatedResourceSubscriberActivity implements OutdatedResourceSubscriber {
+public class NoticeBoardListActivity extends OutdatedResourceSubscriberActivity {
 
     private static final String TAG = NoticeBoardListActivity.class.getSimpleName();
     private NoticeBoardListAdapter noticeBoardListAdapter;
@@ -350,7 +351,7 @@ public class NoticeBoardListActivity extends OutdatedResourceSubscriberActivity 
             case R.id.action_logout :
 
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(mActivityContext);
-                alertDialogBuilder.setMessage(R.string.toast_logout_confirmation)
+                alertDialogBuilder.setMessage(R.string.alert_logout_confirmation)
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

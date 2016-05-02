@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <TextView
@@ -15,7 +16,15 @@
         android:text="@string/add_notice_dialog_title"
         android:textColor="@color/white_ffffff"
         android:textSize="@dimen/font_20sp" />
-
+    <ImageButton
+        android:id="@+id/btn_delete"
+        android:layout_width="@dimen/_60dp"
+        android:layout_height="@dimen/_60dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:background="@color/primary"
+        android:visibility="gone"
+        android:src="@drawable/ic_close"/>
     <EditText
         android:id="@+id/edt_notice_title"
         android:layout_width="match_parent"
@@ -112,5 +121,20 @@
             android:text="@string/btn_done"
             android:textColor="@color/white_ffffff" />
     </LinearLayout>
+    <RelativeLayout
+        android:id="@+id/rlt_progress"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/gray_glass"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/progressbar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+    </RelativeLayout>
 
 </RelativeLayout>

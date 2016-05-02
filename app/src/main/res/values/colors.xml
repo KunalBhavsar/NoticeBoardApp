@@ -8,4 +8,5 @@
     <color name="grey_555555">#555555</color>
     <color name="bkg_card">#a1a1a1</color>
     <color name="green">#4da133</color>
+    <color name="gray_glass">#88555555</color>
 </resources>

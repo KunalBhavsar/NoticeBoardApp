@@ -54,5 +54,7 @@
     <string name="hint_search_noticeboard">Search noticeboard..</string>
     <string name="add_attachment">Add attachments..</string>
     <string name="toast_no_pdf_launcher">Seems you don\'t have any PDF viewer application!!</string>
-    <string name="toast_logout_confirmation">Are you sure, you want to Logout??</string>
+    <string name="alert_logout_confirmation">Are you sure, you want to Logout??</string>
+    <string name="alert_delete_notice">Are you sure, you want to delete notice??</string>
+    <string name="toast_notice_deleted">Notice deleted..</string>
 </resources>
