@@ -22,6 +22,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
+
     <include
         layout="@layout/content_notice_board_or_notice_list" />
 
