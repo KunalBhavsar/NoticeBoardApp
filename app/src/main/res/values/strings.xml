@@ -5,6 +5,7 @@
     <string name="title_register">Register</string>
     <string name="title_homescreen">Home Screen</string>
     <string name="title_notice_board">Notice Board</string>
+    <string name="title_view_image">View Image</string>
     <string name="action_settings">Settings</string>
     <string name="header_created_by">Created by : </string>
     <string name="header_notice_count">Notices : </string>
@@ -17,9 +18,11 @@
     <string name="toast_email_already_in_use">This email is already in use, try another email</string>
     <string name="toast_mobile_already_in_use">This mobile number already in use, try another mobile number</string>
     <string name="toast_register_successfully">Registered successfully!!</string>
+    <string name="toast_profile_updated_successfully">Profile updated successfully!!</string>
     <string name="toast_data_synced">Data saved successfully!!</string>
     <string name="toast_error_in_data_sync">Data could not be saved, Please try again later!!</string>
     <string name="loading_text">Loading...</string>
+    <string name="toast_error_in_loading_image">Error in processing image, Please try again later!!</string>
 
     <string name="error_enter_username">Enter username</string>
     <string name="error_enter_fullname">Enter fullname</string>
@@ -30,6 +33,7 @@
     <string name="error_enter_mobile_number">Enter mobile number</string>
     <string name="error_enter_proper_mobile_number">Enter proper mobile number</string>
     <string name="error_password_mismatch">Confirm password is not matching with original password</string>
+    <string name="error_enter_file_name">Enter file name</string>
 
     <string name="btn_done">DONE</string>
     <string name="btn_cancel">CANCEL</string>
@@ -45,4 +49,10 @@
     <string name="error_enter_description">Enter description</string>
     <string name="error_select_user">Select atleast one user</string>
     <string name="text_admin">Admin</string>
+    <string name="hint_search_user">Search user..</string>
+    <string name="hint_search_notice">Search notice..</string>
+    <string name="hint_search_noticeboard">Search noticeboard..</string>
+    <string name="add_attachment">Add attachments..</string>
+    <string name="toast_no_pdf_launcher">Seems you don\'t have any PDF viewer application!!</string>
+    <string name="toast_logout_confirmation">Are you sure, you want to Logout??</string>
 </resources>

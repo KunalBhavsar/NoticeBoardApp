@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/txt_header"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_50dp"
+        android:layout_height="@dimen/_60dp"
         android:layout_alignParentTop="true"
         android:background="@color/primary"
         android:gravity="center_vertical"
         android:padding="@dimen/_10dp"
         android:text="@string/add_notice_dialog_title"
         android:textColor="@color/white_ffffff"
-        android:textSize="@dimen/font_18sp"
-        android:textStyle="bold"/>
+        android:textSize="@dimen/font_20sp" />
 
     <EditText
         android:id="@+id/edt_notice_title"
@@ -32,12 +31,12 @@
         android:paddingEnd="@dimen/_10dp"
         android:paddingLeft="@dimen/_10dp"
         android:paddingRight="@dimen/_10dp"
-        android:paddingStart="@dimen/_10dp"/>
+        android:paddingStart="@dimen/_10dp" />
 
     <EditText
         android:id="@+id/edt_notice_description"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_150dp"
+        android:layout_height="@dimen/_120dp"
         android:layout_below="@+id/edt_notice_title"
         android:layout_marginLeft="@dimen/_10dp"
         android:layout_marginRight="@dimen/_10dp"
@@ -46,35 +45,48 @@
         android:hint="@string/hint_description"
         android:inputType="textMultiLine"
         android:maxLength="500"
-        android:maxLines="5"/>
+        android:maxLines="5" />
 
-    <TextView android:id="@+id/edt_attachment" android:layout_width="match_parent"
-              android:layout_height="50dp"
-              android:layout_below="@id/edt_notice_description"
-              android:layout_marginLeft="15dp"
-              android:layout_marginRight="@dimen/_10dp"
-              android:layout_marginTop="@dimen/_10dp"
-              android:clickable="true"
-              android:drawableLeft="@drawable/tool"
-              android:drawablePadding="10dp"
-              android:gravity="center_vertical"
-              android:paddingLeft="5dp"
-              android:text="Add attachment"
-              android:textColor="@color/grey_555555"
-    />
+    <Button
+        android:id="@+id/btn_attachment"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_50dp"
+        android:layout_below="@id/edt_notice_description"
+        android:layout_marginEnd="@dimen/_10dp"
+        android:layout_marginLeft="@dimen/_10dp"
+        android:layout_marginRight="@dimen/_10dp"
+        android:layout_marginStart="@dimen/_10dp"
+        android:layout_marginTop="@dimen/_5dp"
+        android:background="@color/accent"
+        android:clickable="true"
+        android:drawableLeft="@drawable/ic_attachment"
+        android:drawablePadding="10dp"
+        android:drawableStart="@drawable/ic_attachment"
+        android:gravity="center_vertical"
+        android:paddingEnd="@dimen/_5dp"
+        android:paddingLeft="@dimen/_5dp"
+        android:paddingRight="@dimen/_5dp"
+        android:paddingStart="@dimen/_5dp"
+        android:text="@string/add_attachment"
+        android:textColor="@color/white_ffffff" />
 
-    <ImageView android:id="@+id/img_photo"
-               android:layout_width="100dp"
-               android:layout_height="100dp"
-               android:layout_marginLeft="60dp"
-               android:layout_below="@+id/edt_attachment"/>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/lst_attachments"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/lin_button"
+        android:layout_below="@+id/btn_attachment"
+        android:layout_marginEnd="@dimen/_10dp"
+        android:layout_marginLeft="@dimen/_10dp"
+        android:layout_marginRight="@dimen/_10dp"
+        android:layout_marginStart="@dimen/_10dp"
+        android:layout_marginTop="@dimen/_5dp" />
 
     <LinearLayout
         android:id="@+id/lin_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginTop="@dimen/_10dp"
         android:orientation="horizontal">
 
         <Button
@@ -84,12 +96,12 @@
             android:layout_weight="1"
             android:background="@color/grey_acacac"
             android:text="@string/btn_cancel"
-            android:textColor="@color/white_ffffff"/>
+            android:textColor="@color/white_ffffff" />
 
         <View
             android:layout_width="@dimen/_2dp"
             android:layout_height="match_parent"
-            android:background="@color/white_ffffff"/>
+            android:background="@color/white_ffffff" />
 
         <Button
             android:id="@+id/btn_add"
@@ -98,7 +110,7 @@
             android:layout_weight="1"
             android:background="@color/grey_acacac"
             android:text="@string/btn_done"
-            android:textColor="@color/white_ffffff"/>
+            android:textColor="@color/white_ffffff" />
     </LinearLayout>
 
 </RelativeLayout>
