@@ -32,7 +32,6 @@ import com.noticeboardapp.NoticeBoardApplication;
 import com.noticeboardapp.R;
 import com.noticeboardapp.adapter.NoticeBoardListAdapter;
 import com.noticeboardapp.adapter.UserListAdapter;
-import com.noticeboardapp.interfaces.OutdatedResourceSubscriber;
 import com.noticeboardapp.model.NoticeBoard;
 import com.noticeboardapp.model.UserMember;
 import com.noticeboardapp.sugar_models.SONotice;
@@ -240,7 +239,7 @@ public class NoticeBoardListActivity extends OutdatedResourceSubscriberActivity 
 
     private void processAddNoticeBoardRequest() {
         /** Get the largest id from server **/
-        new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICEBOARD).orderByChild("id")
+        new Firebase(KeyConstants.FIREBASE_PATH_NOTICEBOARD).orderByChild("id")
                 .limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -281,7 +280,7 @@ public class NoticeBoardListActivity extends OutdatedResourceSubscriberActivity 
                 //noticeBoard.setNotices(new ArrayList<Notice>());
                 noticeBoard.setLastModifiedAt(Calendar.getInstance().getTimeInMillis());
                 noticeBoard.setId(++largestNoticeBoardId);
-                new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICEBOARD).push().setValue(noticeBoard);
+                new Firebase(KeyConstants.FIREBASE_PATH_NOTICEBOARD).push().setValue(noticeBoard);
 
                 /** Save data to local database **/
                 SONoticeBoard soNoticeBoard = new SONoticeBoard();

@@ -73,7 +73,7 @@ public class LoginActivity extends OutdatedResourceSubscriberActivity {
                 ActivityUtils.hideKeyboard(mActivityContext);
                 if (NetworkUtils.isConnectedToInternet(mAppContext)) {
                     progressDialog.show();
-                    new Firebase(KeyConstants.FIREBASE_RESOURCE_USER).orderByChild("username").equalTo(edtUsername.getText().toString()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    new Firebase(KeyConstants.FIREBASE_PATH_USER).orderByChild("username").equalTo(edtUsername.getText().toString()).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot snapshot) {
                             // do some stuff once

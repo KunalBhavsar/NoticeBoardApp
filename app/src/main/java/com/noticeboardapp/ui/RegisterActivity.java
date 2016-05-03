@@ -54,7 +54,7 @@ public class RegisterActivity extends OutdatedResourceSubscriberActivity {
         progressDialog.setMessage(getString(R.string.loading_text));
         progressDialog.setCancelable(false);
 
-        firebase = new Firebase(KeyConstants.FIREBASE_RESOURCE_USER);
+        firebase = new Firebase(KeyConstants.FIREBASE_PATH_USER);
 
         edtFullname = (EditText)findViewById(R.id.edt_name);
         edtUsername = (EditText) findViewById(R.id.edt_username);

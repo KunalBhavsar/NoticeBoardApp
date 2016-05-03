@@ -34,6 +34,7 @@ public class NoticeBoardApplication extends SugarApp implements OutdatedResource
 
     private List<OutdatedResourceSubscriber> subscriberList;
     private ValueEventListener valueEventListener;
+    private Firebase firebase;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -43,13 +44,14 @@ public class NoticeBoardApplication extends SugarApp implements OutdatedResource
         FileUtils.init(this);
 
         subscriberList = new ArrayList<>();
+        firebase = new Firebase(KeyConstants.FIREBASE_BASE_URL_FOR_LIGHT_DATA);
 
         if (AppPreferences.getInstance().isLoggedIn())
             listenForDataChanges();
     }
 
     public void removeGlobalDataListner() {
-        new Firebase(KeyConstants.FIREBASE_BASE_URL).removeEventListener(valueEventListener);
+        firebase.removeEventListener(valueEventListener);
     }
 
     public void listenForDataChanges() {
@@ -66,8 +68,7 @@ public class NoticeBoardApplication extends SugarApp implements OutdatedResource
             }
         };
 
-        Firebase firebase = new Firebase(KeyConstants.FIREBASE_BASE_URL);
-        firebase.addListenerForSingleValueEvent(valueEventListener);
+
         firebase.addValueEventListener(valueEventListener);
     }
 

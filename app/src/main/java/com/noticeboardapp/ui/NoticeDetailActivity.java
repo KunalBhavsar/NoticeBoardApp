@@ -141,7 +141,7 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
                                 public void onClick(DialogInterface dialog, int which) {
                                     if(NetworkUtils.isConnectedToInternet(mAppContext)) {
                                         setProgress(true);
-                                        new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE).runTransaction(new Transaction.Handler() {
+                                        new Firebase(KeyConstants.FIREBASE_PATH_NOTICE).runTransaction(new Transaction.Handler() {
                                             public Transaction.Result doTransaction(MutableData mutableData) {
                                                 Log.i(TAG, "select notice id " + soNoticeSelectedForEdit.getNoticeId());
                                                 for (MutableData mutableDataChild : mutableData.getChildren()) {
@@ -244,7 +244,7 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
 
     private void processAddOrUpdateNoticeRequest() {
         setProgress(true);
-        new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE).orderByChild("id").limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+        new Firebase(KeyConstants.FIREBASE_PATH_NOTICE).orderByChild("id").limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
@@ -256,7 +256,7 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
                 notice.setCreatedAt(Calendar.getInstance().getTimeInMillis());
                 notice.setDescription(edtDescription.getText().toString().trim());
                 notice.setTitle(edtTitle.getText().toString().trim());
-                new Firebase(KeyConstants.FIREBASE_RESOURCE_MEDIA).orderByChild("id").limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                new Firebase(KeyConstants.FIREBASE_PATH_MEDIA).orderByChild("id").limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
 
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -280,7 +280,7 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
                                     Log.e(TAG, e.getMessage(), e);
                                 }
                             }
-                            new Firebase(KeyConstants.FIREBASE_RESOURCE_MEDIA).push().setValue(media);
+                            new Firebase(KeyConstants.FIREBASE_PATH_MEDIA).push().setValue(media);
                             MediaMini mediaMini = new MediaMini();
                             mediaMini.setId(media.getId());
                             mediaMini.setMediaType(media.getMediaType());
@@ -311,7 +311,7 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
                         soNotice.save();
 
                         //Push notice to firebase
-                        new Firebase(KeyConstants.FIREBASE_RESOURCE_NOTICE).push().setValue(notice, new Firebase.CompletionListener() {
+                        new Firebase(KeyConstants.FIREBASE_PATH_NOTICE).push().setValue(notice, new Firebase.CompletionListener() {
                             @Override
                             public void onComplete(FirebaseError firebaseError, Firebase firebase) {
                                 if (firebaseError != null) {

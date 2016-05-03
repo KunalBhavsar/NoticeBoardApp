@@ -6,15 +6,16 @@ package com.noticeboardapp.utils;
 public class KeyConstants {
     public static final String PERMISSION_READ = "read";
     public static final String PERMISSION_WRITE = "write";
-    public static final String FIREBASE_BASE_URL = "https://notice-board-app.firebaseio.com/";
+    public static final String FIREBASE_BASE_URL_FOR_HEAVY_DATA = "https://notice-board-app.firebaseio.com/heavy_data/";
+    public static final String FIREBASE_BASE_URL_FOR_LIGHT_DATA = "https://notice-board-app.firebaseio.com/light_data/";
     public static final String FIREBASE_KEY_NOTICEBOARD = "noticeBoards";
     public static final String FIREBASE_KEY_USER = "users";
     public static final String FIREBASE_KEY_NOTICE = "notices";
     public static final String FIREBASE_KEY_MEDIAS = "medias";
-    public static final String FIREBASE_RESOURCE_NOTICEBOARD = FIREBASE_BASE_URL + FIREBASE_KEY_NOTICEBOARD;
-    public static final String FIREBASE_RESOURCE_USER = FIREBASE_BASE_URL + FIREBASE_KEY_USER;
-    public static final String FIREBASE_RESOURCE_NOTICE = FIREBASE_BASE_URL + FIREBASE_KEY_NOTICE;
-    public static final String FIREBASE_RESOURCE_MEDIA = FIREBASE_BASE_URL + FIREBASE_KEY_MEDIAS;
+    public static final String FIREBASE_PATH_NOTICEBOARD = FIREBASE_BASE_URL_FOR_LIGHT_DATA + FIREBASE_KEY_NOTICEBOARD;
+    public static final String FIREBASE_PATH_USER = FIREBASE_BASE_URL_FOR_LIGHT_DATA + FIREBASE_KEY_USER;
+    public static final String FIREBASE_PATH_NOTICE = FIREBASE_BASE_URL_FOR_LIGHT_DATA + FIREBASE_KEY_NOTICE;
+    public static final String FIREBASE_PATH_MEDIA = FIREBASE_BASE_URL_FOR_HEAVY_DATA + FIREBASE_KEY_MEDIAS;
     public static final String EXTRA_FROM_NOTICE_BOARD_LIST_TO_NOTICE_LIST_ACTIVITY = "extra_from_noticeboard_list_to_notice_list_activity";
     public static final String EXTRA_FROM_NOTICE_LIST_TO_NOTICE_DETAIL_ACTIVITY = "extra_from_notice_list_to_notice_detail_activity";
 
