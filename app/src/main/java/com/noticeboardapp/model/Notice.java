@@ -10,13 +10,12 @@ public class Notice {
     private Long id;
     private String title;
     private String description;
-    private List<MediaMini> attachments;
     private UserMember owner;
     private Long createdAt;
     private Long noticeBoardId;
 
     public Notice() {
-        attachments = new ArrayList<>();
+
     }
 
     public long getNoticeBoardId() {
@@ -49,14 +48,6 @@ public class Notice {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public List<MediaMini> getAttachments() {
-        return attachments;
-    }
-
-    public void setAttachments(List<MediaMini> attachments) {
-        this.attachments = attachments;
     }
 
     public UserMember getOwner() {

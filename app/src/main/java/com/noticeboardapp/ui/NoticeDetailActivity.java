@@ -284,7 +284,8 @@ public class NoticeDetailActivity extends OutdatedResourceSubscriberActivity {
                             MediaMini mediaMini = new MediaMini();
                             mediaMini.setId(media.getId());
                             mediaMini.setMediaType(media.getMediaType());
-                            notice.getAttachments().add(mediaMini);
+                            //TODO: add attachments here
+                            //notice.getAttachments().add(mediaMini);
                             soAttachment.setNoticeId(lastNoticeId);
                             soAttachment.setAttachmentId(lastMediaId);
                             soAttachment.save();
